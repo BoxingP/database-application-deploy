@@ -1,0 +1,64 @@
+- name: allow local connect postgresql by password
+  lineinfile:
+    path: /var/lib/pgsql/12/data/pg_hba.conf
+    regexp: '^host[ ]{1,}all[ ]{1,}all[ ]{1,}127\.0\.0\.1\/32[ ]{1,}ident$'
+    line: 'host    all    all    127.0.0.1/32    md5'
+    state: present
+  register: pg_hba_local_config
+  become: yes
+
+- name: allow outside connect postgresql by password
+  blockinfile:
+    path: /var/lib/pgsql/12/data/pg_hba.conf
+    marker: '# {mark} ANSIBLE MANAGED BLOCK'
+    insertafter: '# IPv4 local connections:'
+    block: |
+      host    all    all    0.0.0.0/0    md5
+    state: present
+  register: pg_hba_outside_config
+  become: yes
+
+- name: allow outside connection
+  blockinfile:
+    path: /var/lib/pgsql/12/data/postgresql.conf
+    marker: '# {mark} ANSIBLE MANAGED BLOCK'
+    insertafter: '# - Connection Settings -'
+    block: |
+      listen_addresses = '*'
+    state: present
+  register: postgresql_connection_config
+  become: yes
+
+- name: reload postgresql config
+  service:
+    name: postgresql-12
+    state: reloaded
+  become: yes
+  when: pg_hba_local_config is changed or pg_hba_outside_config is changed or postgresql_connection_config is changed
+
+- name: get the postgres listening port
+  shell:
+    cmd: netstat -plunt | grep postmaster | awk '{print $4}' | sed -e 's/.*://' | uniq
+  become: yes
+  register: command_output
+
+- name: set the postgres listening port
+  set_fact:
+    postgres_default_port: '{{ command_output.stdout }}'
+  when: command_output is defined and command_output.stdout is defined and command_output.stdout != ''
+
+- name: change postgresql port
+  community.postgresql.postgresql_set:
+    port: '{{ postgres_default_port }}'
+    name: port
+    value: '{{ db_port }}'
+  notify: "restart {{ ansible_facts['os_family']|lower }} postgresql"
+  become: yes
+  become_user: postgres
+
+- name: set up firewall
+  include_role:
+    name: set_up_firewall
+  vars:
+    enable_service: postgresql
+    enable_port: '{{ db_port }}'

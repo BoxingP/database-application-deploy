@@ -1,0 +1,47 @@
+- name: import repository signing keys
+  apt_key:
+    url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+    state: present
+  become: yes
+
+- name: get ubuntu distribution code
+  command: lsb_release -cs
+  register: ubuntu_release
+
+- name: add postgresql repository
+  apt_repository:
+    repo: deb http://apt.postgresql.org/pub/repos/apt {{ ubuntu_release.stdout }}-pgdg main
+    state: present
+    update_cache: yes
+  become: yes
+
+- name: install required packages
+  apt:
+    name:
+      - net-tools
+      - build-essential
+      - python3-pip
+      - python3-dev
+      - libpq-dev
+      - acl
+    state: present
+  become: yes
+
+- name: install postgresql 12
+  apt:
+    name:
+      - postgresql-12
+      - postgresql-contrib-12
+    state: present
+  become: yes
+
+- name: install psycopg2
+  command: pip3 install psycopg2
+  become: yes
+
+- name: ensure the postgresql service is running
+  service:
+    name: postgresql
+    state: started
+    enabled: yes
+  become: yes

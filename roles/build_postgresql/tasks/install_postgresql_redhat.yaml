@@ -1,0 +1,47 @@
+- name: install required repos
+  yum:
+    name:
+      - centos-release-scl-rh
+      - https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+    state: present
+  become: yes
+  when:
+    - ansible_distribution|lower == 'centos'
+
+- name: install required packages
+  yum:
+    name:
+      - net-tools
+      - python-psycopg2
+    state: present
+  become: yes
+
+- name: install postgresql 12 repository
+  yum:
+    name: https://download.postgresql.org/pub/repos/yum/reporpms/EL-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm
+    state: present
+  become: yes
+
+- name: install postgresql 12
+  yum:
+    name:
+      - postgresql12-server
+      - postgresql12-contrib
+      - postgresql12-devel
+    state: present
+  become: yes
+
+- name: initialize the cluster
+  command: /usr/pgsql-12/bin/postgresql-12-setup initdb
+  register: result
+  become: yes
+  failed_when:
+    - result.rc != 0
+    - '"Data directory is not empty" not in result.stdout'
+
+- name: ensure the postgresql service is running
+  service:
+    name: postgresql-12
+    state: started
+    enabled: yes
+  become: yes

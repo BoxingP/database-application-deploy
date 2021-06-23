@@ -1,3 +1,30 @@
 - name: get hosts facts
   hosts: all
   gather_facts: yes
+
+- name: init project
+  hosts: app_servers, db_servers
+  gather_facts: no
+  vars:
+    code_repo: git@github.com:thermofisher/b2b-marketplace.git
+    code_repo_key: ~/.ssh/id_rsa_github_boxingpengthermofisher
+    code_path: /tmp/b2b_marketplace_code
+  tasks:
+    - name: init server environment
+      include_role:
+        name: init_server_environment
+    - name: init workspace
+      import_tasks: tasks/init_workspace.yaml
+
+- name: set up db server
+  hosts: db_servers
+  gather_facts: no
+  vars:
+    database_port: 5433
+    database_user: demo_user
+  tasks:
+    - name: build postgresql
+      include_role:
+        name: build_postgresql
+    - name: initialize postgresql database
+      import_tasks: tasks/initialize_postgresql_database.yaml

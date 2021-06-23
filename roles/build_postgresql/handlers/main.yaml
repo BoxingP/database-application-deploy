@@ -1,0 +1,15 @@
+- name: restart debian postgresql
+  service:
+    name: postgresql
+    state: restarted
+  become: yes
+  when:
+    - ansible_facts['os_family']|lower == 'debian'
+
+- name: restart redhat postgresql
+  service:
+    name: postgresql-12
+    state: restarted
+  become: yes
+  when:
+    - ansible_facts['os_family']|lower == 'redhat'

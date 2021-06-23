@@ -1,0 +1,18 @@
+- name: update yum cache
+  yum:
+    update_cache: yes
+  become: yes
+  ignore_errors: yes
+
+- name: update all packages
+  yum:
+    name: '*'
+    state: latest
+  become: yes
+
+- name: install required packages
+  yum:
+    name:
+      - "@Development tools"
+    state: present
+  become: yes
