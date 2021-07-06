@@ -1,8 +1,12 @@
 centos ansible_host=192.168.56.106 ansible_port=22 ansible_user=boxing ansible_password='{{ login_password }}' ansible_become_password='{{ become_password }}'
 ubuntu ansible_host=192.168.56.107 ansible_port=22 ansible_user=boxing ansible_password='{{ login_password }}' ansible_become_password='{{ become_password }}'
+localhost ansible_host=127.0.0.1 ansible_connection=local ansible_user=boxing ansible_password='{{ login_password }}' ansible_become_password='{{ become_password }}'
 
 [app_servers]
 centos
 
 [db_servers]
+centos
+
+[build_server]
 centos

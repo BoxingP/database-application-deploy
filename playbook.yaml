@@ -2,19 +2,43 @@
   hosts: all
   gather_facts: yes
 
-- name: init project
-  hosts: app_servers, db_servers
+- name: load ssh key
+  hosts: localhost
+  gather_facts: no
+  vars:
+    code_repo_key: /home/boxing/.ssh/id_rsa_github_boxingpengthermofisher
+  tasks:
+    - name: kill running ssh agent
+      shell: |
+        ps aux | grep [s]sh | awk '{print $2}' | xargs sudo kill -15
+      become: yes
+    - name: start ssh agent
+      shell: |
+        eval $(ssh-agent -s) > /dev/null
+        echo '{"SSH_AUTH_SOCK":"'$SSH_AUTH_SOCK'","SSH_AGENT_PID":"'$SSH_AGENT_PID'"}'
+      register: env_vars_stdout
+    - name: store environment variables
+      set_fact:
+        env_vars: '{{ env_vars_stdout.stdout }}'
+    - name: add ssh key
+      shell: ssh-add '{{ code_repo_key }}'
+      environment: '{{ env_vars }}'
+
+- name: init project codes
+  hosts: build_server
   gather_facts: no
   vars:
     code_repo: git@github.com:thermofisher/b2b-marketplace.git
-    code_repo_key: ~/.ssh/id_rsa_github_boxingpengthermofisher
     code_path: /tmp/b2b_marketplace_code
+    ansible_ssh_common_args: '-o IdentityAgent={{ hostvars["localhost"]["env_vars"]["SSH_AUTH_SOCK"] }}'
   tasks:
     - name: init server environment
       include_role:
         name: init_server_environment
     - name: init workspace
       import_tasks: tasks/init_workspace.yaml
+    - name: build jar file
+      import_tasks: tasks/build_jar_file.yaml
 
 - name: set up db server
   hosts: db_servers
@@ -23,6 +47,9 @@
     database_port: 5433
     database_user: demo_user
   tasks:
+    - name: init server environment
+      include_role:
+        name: init_server_environment
     - name: build postgresql
       include_role:
         name: build_postgresql

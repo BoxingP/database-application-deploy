@@ -1,0 +1,13 @@
+- name: install java
+  include_role:
+    name: install_java
+
+- name: install maven
+  include_role:
+    name: install_maven
+
+- name: build jar file
+  command:
+    cmd: mvn clean package -Dmaven.test.skip=true
+  args:
+    chdir: '{{ code_path }}'

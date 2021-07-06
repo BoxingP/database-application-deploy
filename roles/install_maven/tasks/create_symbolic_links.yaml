@@ -1,0 +1,22 @@
+---
+- name: create mvn link
+  file:
+    src: '{{ maven_home_parent_directory }}/apache-maven-{{ maven_version }}/bin/mvn'
+    dest: '/usr/local/bin/mvn'
+    owner: root
+    group: root
+    mode: '0755'
+    state: link
+    force: yes
+  become: yes
+
+- name: create mvn debug link
+  file:
+    src: '{{ maven_home_parent_directory }}/apache-maven-{{ maven_version }}/bin/mvnDebug'
+    dest: '/usr/local/bin/mvnDebug'
+    owner: root
+    group: root
+    mode: '0755'
+    state: link
+    force: yes
+  become: yes

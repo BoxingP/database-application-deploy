@@ -1,8 +1,14 @@
+---
 - name: copy codes files to tmp path
-  synchronize:
+  ansible.posix.synchronize:
     src: '/tmp/b2b_marketplace_code/db/'
     dest: '/tmp/postgresql_scripts/'
+    mode: push
+    delete: yes
     recursive: yes
+  vars:
+    ansible_python_interpreter: '/usr/bin/python3'
+  delegate_to: '{{groups["build_server"][0]}}'
 
 - name: remove exist databases
   community.postgresql.postgresql_db:

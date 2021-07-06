@@ -14,5 +14,17 @@
   yum:
     name:
       - "@Development tools"
+      - sshpass
+    state: present
+  become: yes
+
+- name: install python3 and related packages
+  yum:
+    name:
+      - python-virtualenv
+      - python3
+      - python3-devel
+      - python3-pip
+      - python3-wheel
     state: present
   become: yes

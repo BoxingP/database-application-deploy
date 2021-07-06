@@ -2,7 +2,6 @@
   file:
     path: '{{ code_path }}'
     state: absent
-  delegate_to: 127.0.0.1
 
 - name: git checkout codes
   git:
@@ -10,13 +9,10 @@
     depth: 1
     version: develop
     dest: '{{ code_path }}'
-    key_file: '{{ code_repo_key }}'
     accept_hostkey: yes
     force: yes
-  delegate_to: 127.0.0.1
 
 - name: remove useless files
   file:
     path: '{{ code_path }}/.git'
     state: absent
-  delegate_to: 127.0.0.1
