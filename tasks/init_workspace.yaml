@@ -1,18 +1,18 @@
 - name: remove exist codes files directory
   file:
-    path: '{{ code_path }}'
+    path: '{{ code.path }}'
     state: absent
 
 - name: git checkout codes
   git:
-    repo: '{{ code_repo }}'
+    repo: '{{ code.repo }}'
     depth: 1
     version: develop
-    dest: '{{ code_path }}'
+    dest: '{{ code.path }}'
     accept_hostkey: yes
     force: yes
 
 - name: remove useless files
   file:
-    path: '{{ code_path }}/.git'
+    path: '{{ code.path }}/.git'
     state: absent

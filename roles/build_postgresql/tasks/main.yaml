@@ -19,13 +19,13 @@
 
 - name: generate a random password for user
   set_fact:
-    database_password: "{{ lookup('password', '/dev/null length=30 chars=ascii_letters,digits') }}"
+    db_password: "{{ lookup('password', '/dev/null length=30 chars=ascii_letters,digits') }}"
 
 - name: create user
   community.postgresql.postgresql_user:
     port: '{{ db_port }}'
     name: '{{ db_user }}'
-    password: '{{ database_password }}'
+    password: '{{ db_password }}'
     state: present
   become: yes
   become_user: postgres
@@ -41,12 +41,12 @@
 
 - name: get postgresql host
   set_fact:
-    database_host: '{{ hostvars[inventory_hostname].ansible_host }}'
+    db_host: '{{ hostvars[inventory_hostname].ansible_host }}'
   when: hostvars[inventory_hostname].ansible_host is defined
 
 - name: get postgresql host
   set_fact:
-    database_host: 127.0.0.1
+    db_host: 127.0.0.1
   when: hostvars[inventory_hostname].ansible_connection is defined and
         hostvars[inventory_hostname].ansible_connection == 'local'
 
@@ -55,15 +55,15 @@
     - name: generate postgresql config
       template:
         src: database_config.j2
-        dest: '/tmp/{{ database_host }}_postgresql_database_config.yaml'
+        dest: '/tmp/{{ db_host }}_postgresql_database_config.yaml'
         force: yes
     - name: store file local
       fetch:
-        src: '/tmp/{{ database_host }}_postgresql_database_config.yaml'
+        src: '/tmp/{{ db_host }}_postgresql_database_config.yaml'
         dest: '/tmp/'
         flat: yes
   always:
     - name: remove file remote
       file:
-        path: '/tmp/{{ database_host }}_postgresql_database_config.yaml'
+        path: '/tmp/{{ db_host }}_postgresql_database_config.yaml'
         state: absent

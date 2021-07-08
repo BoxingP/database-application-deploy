@@ -1,5 +1,3 @@
 ---
-db_host: '{{ database_host }}'
-db_port: '{{ database_port }}'
-db_user: '{{ database_user }}'
-db_password: '{{ database_password }}'
+db_port: '{{ postgresql.port }}'
+db_user: '{{ postgresql.user }}'

@@ -1,0 +1,39 @@
+---
+- name: uninstall docker old versions
+  yum:
+    name:
+      - docker
+      - docker-client
+      - docker-client-latest
+      - docker-common
+      - docker-latest
+      - docker-latest-logrotate
+      - docker-logrotate
+      - docker-engine
+    state: absent
+  become: yes
+
+- name: add docker gpg key
+  rpm_key:
+    key: '{{ docker_yum_gpg_key }}'
+    state: present
+  become: yes
+
+- name: add docker ce repo
+  get_url:
+    url: '{{ docker_yum_repo_url }}'
+    dest: '/etc/yum.repos.d/docker-ce.repo'
+    owner: root
+    group: root
+    mode: 0644
+  become: yes
+
+- name: install docker engine
+  yum:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - container-selinux
+    state: present
+  become: yes

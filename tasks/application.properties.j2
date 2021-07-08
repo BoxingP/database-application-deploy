@@ -1,0 +1,139 @@
+#Druid连接池
+spring.datasource.type=com.alibaba.druid.pool.DruidDataSource
+#b2b cache db config
+spring.datasource.druid.b2b.name=b2b_marketplace
+spring.datasource.druid.b2b.driver-class-name=org.postgresql.Driver
+spring.datasource.druid.b2b.url=jdbc:postgresql://{{ postgresql.host }}:{{ postgresql.port }}/b2b_marketplace
+spring.datasource.druid.b2b.username={{ postgresql.user }}
+spring.datasource.druid.b2b.password={{ postgresql.password }}
+spring.datasource.druid.b2b.validation-query=SELECT 1
+spring.datasource.druid.b2b.validation-query-timeout=30000
+spring.datasource.druid.b2b.initial-size=10
+spring.datasource.druid.b2b.min-idle=10
+spring.datasource.druid.b2b.max-active=20
+spring.datasource.druid.b2b.max-wait=60000
+spring.datasource.druid.b2b.test-while-idle=true
+spring.datasource.druid.b2b.time-between-eviction-runs-millis=600000
+spring.datasource.druid.b2b.min-evictable-idle-time-millis=300000
+spring.datasource.druid.b2b.test-on-borrow=false
+spring.datasource.druid.b2b.test-on-return=false
+spring.datasource.druid.b2b.pool-prepared-statements=false
+spring.datasource.druid.b2b.filters=stat,wall,slf4j
+spring.datasource.druid.b2b.connection-properties=druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
+spring.datasource.druid.b2b.use-global-data-source-stat=true
+
+#b2b config-db config
+spring.datasource.druid.b2b-config.name=b2b_config
+spring.datasource.druid.b2b-config.driver-class-name=org.postgresql.Driver
+spring.datasource.druid.b2b-config.url=jdbc:postgresql://{{ postgresql.host }}:{{ postgresql.port }}/b2b_config
+spring.datasource.druid.b2b-config.username={{ postgresql.user }}
+spring.datasource.druid.b2b-config.password={{ postgresql.password }}
+spring.datasource.druid.b2b-config.validation-query=SELECT 1
+spring.datasource.druid.b2b-config.validation-query-timeout=30000
+spring.datasource.druid.b2b-config.initial-size=10
+spring.datasource.druid.b2b-config.min-idle=10
+spring.datasource.druid.b2b-config.max-active=20
+spring.datasource.druid.b2b-config.max-wait=60000
+spring.datasource.druid.b2b-config.test-while-idle=true
+spring.datasource.druid.b2b-config.time-between-eviction-runs-millis=600000
+spring.datasource.druid.b2b-config.min-evictable-idle-time-millis=300000
+spring.datasource.druid.b2b-config.test-on-borrow=false
+spring.datasource.druid.b2b-config.test-on-return=false
+spring.datasource.druid.b2b-config.pool-prepared-statements=false
+spring.datasource.druid.b2b-config.filters=stat,wall,slf4j
+spring.datasource.druid.b2b-config.connection-properties=druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
+spring.datasource.druid.b2b-config.use-global-data-source-stat=true
+
+# e1 db config
+spring.datasource.druid.e1.name=e1
+spring.datasource.druid.e1.driver-class-name=oracle.jdbc.OracleDriver
+spring.datasource.druid.e1.url=jdbc:oracle:thin:@{{ e1.host }}:{{ e1.port }}/{{ e1.database }}
+spring.datasource.druid.e1.username={{ e1.user }}
+spring.datasource.druid.e1.password={{ e1.password }}
+spring.datasource.druid.e1.validation-query=SELECT 1 FROM DUAL
+spring.datasource.druid.e1.validation-query-timeout=50000
+spring.datasource.druid.e1.initial-size=5
+spring.datasource.druid.e1.min-idle=5
+spring.datasource.druid.e1.max-active=10
+spring.datasource.druid.e1.max-wait=60000
+spring.datasource.druid.e1.test-while-idle=true
+spring.datasource.druid.e1.time-between-eviction-runs-millis=600000
+spring.datasource.druid.e1.min-evictable-idle-time-millis=300000
+spring.datasource.druid.e1.test-on-borrow=false
+spring.datasource.druid.e1.test-on-return=false
+spring.datasource.druid.e1.pool-prepared-statements=true
+spring.datasource.druid.e1.filters=stat,wall,slf4j
+# read time out = 600s
+spring.datasource.druid.e1.connection-properties=druid.stat.mergeSql=true;druid.stat.slowSqlMillis=8000;oracle.jdbc.ReadTimeout=600000
+spring.datasource.druid.e1.use-global-data-source-stat=true
+
+# quartz db config
+spring.datasource.druid.quartz.name=quartz
+spring.datasource.druid.quartz.driver-class-name=org.postgresql.Driver
+spring.datasource.druid.quartz.url=jdbc:postgresql://{{ postgresql.host }}:{{ postgresql.port }}/quartz
+spring.datasource.druid.quartz.username={{ postgresql.user }}
+spring.datasource.druid.quartz.password={{ postgresql.password }}
+spring.datasource.druid.quartz.validation-query=SELECT 1
+spring.datasource.druid.quartz.validation-query-timeout=50000
+spring.datasource.druid.quartz.initial-size=5
+spring.datasource.druid.quartz.min-idle=5
+spring.datasource.druid.quartz.max-active=10
+spring.datasource.druid.quartz.max-wait=60000
+spring.datasource.druid.quartz.test-while-idle=true
+spring.datasource.druid.quartz.time-between-eviction-runs-millis=600000
+spring.datasource.druid.quartz.min-evictable-idle-time-millis=300000
+spring.datasource.druid.quartz.test-on-borrow=true
+spring.datasource.druid.quartz.test-on-return=false
+spring.datasource.druid.quartz.pool-prepared-statements=false
+spring.datasource.druid.quartz.filters=stat,wall,slf4j
+spring.datasource.druid.quartz.connection-properties=druid.stat.mergeSql=true;druid.stat.slowSqlMillis=8000
+spring.datasource.druid.quartz.use-global-data-source-stat=true
+
+#Druid监控端配置
+spring.datasource.druid.stat-view-servlet.login-username={{ druid.user }}
+spring.datasource.druid.stat-view-servlet.login-password={{ druid.password }}
+spring.datasource.druid.stat-view-servlet.enabled=true
+spring.datasource.druid.stat-view-servlet.url-pattern=/druid/*
+#Druid AOP config
+spring.datasource.druid.aop-patterns=com.thermofisher.dsc.b2b.service.*
+spring.aop.proxy-target-class=true
+# AWS S3
+aws.region={{ aws.region }}
+tf.s3.bucket={{ aws.tf_s3 }}
+cas.s3.bucket={{ aws.cas_s3 }}
+bak.s3.bucket={{ aws.backup_s3 }}
+# email config
+mail.config.server={{ email.server }}
+mail.config.account={{ email.account }}
+mail.config.code={{ email.password }}
+spring.mail.default-encoding=UTF-8
+business.mail.to.address={{ email.to_business }}
+operator.mail.to.address={{ email.to_operator }}
+
+#logging.level.org.apache.kafka.*=DEBUG
+
+# spring cloud stream kafka
+spring.cloud.stream.kafka.binder.brokers={{ kafka.brokers }}
+spring.cloud.stream.kafka.binder.zkNodes={{ kafka.nodes }}
+
+spring.cloud.stream.kafka.bindings.productContent.consumer.enableDlq=true
+spring.cloud.stream.kafka.bindings.productImage.consumer.enableDlq=true
+spring.cloud.stream.kafka.bindings.productTaxonomy.consumer.enableDlq=true
+
+## limit message size within 4M, default 1M
+#spring.cloud.stream.kafka.bindings.productContent.consumer.configuration.max.partition.fetch.bytes=4194304
+#spring.cloud.stream.kafka.bindings.productImage.consumer.configuration.max.partition.fetch.bytes=4194304
+#spring.cloud.stream.kafka.bindings.productTaxonomy.consumer.configuration.max.partition.fetch.bytes=4194304
+
+spring.cloud.stream.kafka.bindings.productContent.consumer.configuration.request.timeout.ms=60000
+spring.cloud.stream.kafka.bindings.productImage.consumer.configuration.request.timeout.ms=60000
+spring.cloud.stream.kafka.bindings.productTaxonomy.consumer.configuration.request.timeout.ms=60000
+
+spring.cloud.stream.bindings.productContent.destination=tf.catalog.sku.hybris.content.source
+spring.cloud.stream.bindings.productContent.group={{ product.content_group }}
+
+spring.cloud.stream.bindings.productImage.destination=tf.assets.product.images
+spring.cloud.stream.bindings.productImage.group={{ product.image_group }}
+
+spring.cloud.stream.bindings.productTaxonomy.destination=stream.hybris.browse.thermofisher.tfgptcategory.source
+spring.cloud.stream.bindings.productTaxonomy.group={{ product.taxonomy_group }}

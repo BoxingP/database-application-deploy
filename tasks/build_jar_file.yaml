@@ -6,8 +6,14 @@
   include_role:
     name: install_maven
 
+- name: override the app properties
+  template:
+    src: application.properties.j2
+    dest: '{{ code.path }}/src/main/resources/application-{{ deploy_environment }}.properties'
+    force: yes
+
 - name: build jar file
   command:
     cmd: mvn clean package -Dmaven.test.skip=true
   args:
-    chdir: '{{ code_path }}'
+    chdir: '{{ code.path }}'

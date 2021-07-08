@@ -13,7 +13,7 @@
 - name: remove exist databases
   community.postgresql.postgresql_db:
     name: '{{ item }}'
-    port: '{{ database_port }}'
+    port: '{{ postgresql.port }}'
     state: absent
   become: yes
   become_user: postgres
@@ -23,25 +23,25 @@
     - quartz
 
 - name: initalize cache db
-  command: 'psql --file=/tmp/postgresql_scripts/cache_db_ddl.sql --port={{ database_port }}'
+  command: 'psql --file=/tmp/postgresql_scripts/cache_db_ddl.sql --port={{ postgresql.port }}'
   become: yes
   become_user: postgres
 
 - name: initalize config db
-  command: 'psql --file=/tmp/postgresql_scripts/config_db_ddl.sql --port={{ database_port }}'
+  command: 'psql --file=/tmp/postgresql_scripts/config_db_ddl.sql --port={{ postgresql.port }}'
   become: yes
   become_user: postgres
 
 - name: initalize quartz db
-  command: 'psql --file=/tmp/postgresql_scripts/quartz_postgre_init.sql --port={{ database_port }}'
+  command: 'psql --file=/tmp/postgresql_scripts/quartz_postgre_init.sql --port={{ postgresql.port }}'
   become: yes
   become_user: postgres
 
 - name: ensure user has the access, step 1
   community.postgresql.postgresql_privs:
     db: '{{ item }}'
-    port: '{{ database_port }}'
-    role: '{{ database_user }}'
+    port: '{{ postgresql.port }}'
+    role: '{{ postgresql.user }}'
     objs: ALL_DEFAULT
     privs: ALL
     type: default_privs
@@ -56,8 +56,8 @@
 - name: ensure user has the access, step 2
   community.postgresql.postgresql_privs:
     db: '{{ item }}'
-    port: '{{ database_port }}'
-    role: '{{ database_user }}'
+    port: '{{ postgresql.port }}'
+    role: '{{ postgresql.user }}'
     objs: ALL_IN_SCHEMA
     type: table
     privs: SELECT,INSERT,UPDATE,DELETE,TRIGGER
@@ -71,8 +71,8 @@
 - name: ensure user has the access, step 3
   community.postgresql.postgresql_privs:
     db: '{{ item }}'
-    port: '{{ database_port }}'
-    role: '{{ database_user }}'
+    port: '{{ postgresql.port }}'
+    role: '{{ postgresql.user }}'
     objs: ALL_IN_SCHEMA
     type: sequence
     privs: SELECT,UPDATE,USAGE

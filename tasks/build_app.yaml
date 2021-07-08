@@ -1,0 +1,63 @@
+---
+- name: upload jar file to app servers
+  ansible.posix.synchronize:
+    src: '{{ code.path }}/target/{{ code.jar_file }}'
+    dest: '{{ code.path }}/'
+    mode: push
+    delete: yes
+    recursive: yes
+  vars:
+    ansible_python_interpreter: '/usr/bin/python3'
+  delegate_to: '{{groups["build_server"][0]}}'
+
+- name: generate dockerfile
+  template:
+    src: Dockerfile.j2
+    dest: '{{ code.path }}/Dockerfile'
+    mode: 0644
+    force: yes
+
+- name: upgrade pip and related
+  pip:
+    name:
+      - pip
+      - setuptools
+      - wheel
+    state: latest
+    virtualenv: '{{ virtualenv }}'
+    virtualenv_command: /usr/bin/python3 -m venv
+  become: yes
+
+- name: create python virtualenv
+  pip:
+    name:
+      - docker==5.0.0
+      - six==1.16.0
+    virtualenv: '{{ virtualenv }}'
+    virtualenv_command: /usr/bin/python3 -m venv
+  become: yes
+
+- name: run app in docker
+  block:
+    - name: build docker image
+      community.docker.docker_image:
+        name: '{{ project | replace(" ", "-") }}'
+        tag: '{{ deploy_environment }}'
+        build:
+          path: '{{ code.path }}'
+        source: build
+        state : present
+    - name: start docker container
+      docker_container:
+        name: '{{ project | replace(" ", "-") }}-{{ deploy_environment }}'
+        image: '{{ project | replace(" ", "-") }}:{{ deploy_environment }}'
+        state: started
+        detach: yes
+        volumes:
+          - '{{ hostvars[inventory_hostname].ansible_env.HOME }}/b2b_marketplace_dev_logs:/home/ubuntu/b2bm/logs'
+        ports:
+          - '{{ docker.host_port }}:{{ docker.container_port }}'
+  vars:
+    ansible_python_interpreter: '{{ virtualenv }}/bin/python3'
+  environment:
+    PATH: '{{ virtualenv }}/bin:{{ hostvars[inventory_hostname].ansible_env.PATH }}'

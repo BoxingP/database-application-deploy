@@ -1,0 +1,5 @@
+FROM java:8
+WORKDIR /app
+ADD {{ code.jar_file }} {{ code.jar_file }}
+EXPOSE {{ docker.container_port }}
+CMD java -jar {{ code.jar_file }} --spring.profiles.active={{ deploy_environment }} --aws.ak={{ aws.access_key }} --aws.sk={{ aws.secret_access_key }}
