@@ -12,8 +12,7 @@
     - 'vars/{{ project | replace(" ", "_") }}_{{ deploy_environment }}_config.yaml'
   tasks:
     - name: kill running ssh agent
-      shell: |
-        ps aux | grep [s]sh | awk '{print $2}' | xargs sudo kill -15
+      shell: ps aux | grep [s]sh | awk '{print $2}' | xargs sudo kill -15
       become: yes
     - name: start ssh agent
       shell: |
@@ -27,7 +26,7 @@
       shell: ssh-add '{{ code.repo_private_key }}'
       environment: '{{ env_vars }}'
 
-- name: init project codes
+- name: fetch project codes
   hosts: build_server
   gather_facts: no
   vars:
@@ -67,11 +66,21 @@
   vars:
     project: b2b marketplace
     deploy_environment: dev
+    virtualenv: '{{ hostvars[inventory_hostname].ansible_env.HOME }}/.virtualenvs/{{ project | replace(" ", "-") }}-{{ deploy_environment }}-env'
   vars_files:
     - 'vars/{{ project | replace(" ", "_") }}_{{ deploy_environment }}_config.yaml'
   tasks:
-    - name: build jar file
-      import_tasks: tasks/build_jar_file.yaml
+    - name: init server environment
+      include_role:
+        name: init_server_environment
+    - name: create python environment
+      include_role:
+        name: create_python_environment
+    - name: install docker
+      include_role:
+        name: install_docker
+    - name: build docker image
+      import_tasks: tasks/build_docker_image.yaml
 
 - name: set up app server
   hosts: app_servers
@@ -79,7 +88,6 @@
   vars:
     project: b2b marketplace
     deploy_environment: dev
-    virtualenv: '{{ hostvars[inventory_hostname].ansible_env.HOME }}/.virtualenvs/b2b-marketplace-env'
   vars_files:
     - 'vars/{{ project | replace(" ", "_") }}_{{ deploy_environment }}_config.yaml'
   tasks:
@@ -89,5 +97,5 @@
     - name: install docker
       include_role:
         name: install_docker
-    - name: build app
-      import_tasks: tasks/build_app.yaml
+    - name: set up app container
+      import_tasks: tasks/set_up_app_container.yaml

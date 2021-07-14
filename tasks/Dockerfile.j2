@@ -1,5 +1,16 @@
-FROM java:8
-WORKDIR /app
-ADD {{ code.jar_file }} {{ code.jar_file }}
-EXPOSE {{ docker.container_port }}
+FROM openjdk:8-jdk-alpine
+RUN apk add --no-cache curl tar bash
+ARG MAVEN_MAJOR=3
+ARG MAVEN_VERSION=3.8.1
+ARG MAVEN_FILE=apache-maven-${MAVEN_VERSION}-bin.tar.gz
+ARG BASE_URL=https://downloads.apache.org/maven/maven-${MAVEN_MAJOR}/${MAVEN_VERSION}/binaries
+ARG USER_HOME_DIR="/root"
+RUN mkdir -p /usr/share/maven && curl -fsSL -o /tmp/apache-maven.tar.gz $BASE_URL/$MAVEN_FILE && tar -xzf /tmp/apache-maven.tar.gz -C /usr/share/maven --strip-components=1 && rm -f /tmp/apache-maven.tar.gz && ln -s /usr/share/maven/bin/mvn /usr/bin/mvn
+ENV MAVEN_HOME=/usr/share/maven
+ENV MAVEN_CONFIG="${USER_HOME_DIR}/.m2"
+ENV MAVEN_OPTS="-XX:+TieredCompilation -XX:TieredStopAtLevel=1"
+RUN mkdir -p /usr/src/app
+WORKDIR /usr/src/app
+COPY . /usr/src/app/
+RUN mvn clean package -Dmaven.test.skip=true && mv /usr/src/app/target/{{ code.jar_file }} /usr/src/app/{{ code.jar_file }} && rm -rf target
 CMD java -jar {{ code.jar_file }} --spring.profiles.active={{ deploy_environment }} --aws.ak={{ aws.access_key }} --aws.sk={{ aws.secret_access_key }}

@@ -1,13 +1,11 @@
 ---
-- name: copy codes files to tmp path
+- name: upload database initialize scripts to db server
   ansible.posix.synchronize:
     src: '/tmp/b2b_marketplace_code/db/'
     dest: '/tmp/postgresql_scripts/'
     mode: push
     delete: yes
     recursive: yes
-  vars:
-    ansible_python_interpreter: '/usr/bin/python3'
   delegate_to: '{{groups["build_server"][0]}}'
 
 - name: remove exist databases
@@ -22,17 +20,17 @@
     - b2b_marketplace
     - quartz
 
-- name: initalize cache db
+- name: initialize cache db
   command: 'psql --file=/tmp/postgresql_scripts/cache_db_ddl.sql --port={{ postgresql.port }}'
   become: yes
   become_user: postgres
 
-- name: initalize config db
+- name: initialize config db
   command: 'psql --file=/tmp/postgresql_scripts/config_db_ddl.sql --port={{ postgresql.port }}'
   become: yes
   become_user: postgres
 
-- name: initalize quartz db
+- name: initialize quartz db
   command: 'psql --file=/tmp/postgresql_scripts/quartz_postgre_init.sql --port={{ postgresql.port }}'
   become: yes
   become_user: postgres

@@ -1,15 +1,4 @@
 ---
-- name: upload jar file to app servers
-  ansible.posix.synchronize:
-    src: '{{ code.path }}/target/{{ code.jar_file }}'
-    dest: '{{ code.path }}/'
-    mode: push
-    delete: yes
-    recursive: yes
-  vars:
-    ansible_python_interpreter: '/usr/bin/python3'
-  delegate_to: '{{groups["build_server"][0]}}'
-
 - name: generate dockerfile
   template:
     src: Dockerfile.j2
@@ -37,8 +26,13 @@
     virtualenv_command: /usr/bin/python3 -m venv
   become: yes
 
-- name: run app in docker
-  block:
+- name: override the app properties
+  template:
+    src: application.properties.j2
+    dest: '{{ code.path }}/src/main/resources/application-{{ deploy_environment }}.properties'
+    force: yes
+
+- block:
     - name: build docker image
       community.docker.docker_image:
         name: '{{ project | replace(" ", "-") }}'
@@ -46,17 +40,11 @@
         build:
           path: '{{ code.path }}'
         source: build
-        state : present
-    - name: start docker container
-      docker_container:
-        name: '{{ project | replace(" ", "-") }}-{{ deploy_environment }}'
-        image: '{{ project | replace(" ", "-") }}:{{ deploy_environment }}'
-        state: started
-        detach: yes
-        volumes:
-          - '{{ hostvars[inventory_hostname].ansible_env.HOME }}/b2b_marketplace_dev_logs:/home/ubuntu/b2bm/logs'
-        ports:
-          - '{{ docker.host_port }}:{{ docker.container_port }}'
+        state: present
+        force_source: yes
+        force_tag: yes
+    - name: save docker image to tar file
+      command: 'docker save -o /tmp/{{ project | replace(" ", "_") }}_{{ deploy_environment }}.tar {{ project | replace(" ", "-") }}:{{ deploy_environment }}'
   vars:
     ansible_python_interpreter: '{{ virtualenv }}/bin/python3'
   environment:

@@ -1,0 +1,15 @@
+---
+- name: upload image to app server
+  ansible.posix.synchronize:
+    src: '/tmp/{{ project | replace(" ", "_") }}_{{ deploy_environment }}.tar'
+    dest: '/tmp/{{ project | replace(" ", "_") }}_{{ deploy_environment }}.tar'
+    mode: push
+    delete: yes
+    recursive: yes
+  delegate_to: '{{groups["build_server"][0]}}'
+
+- name: load image into docker
+  command: 'docker load -i /tmp/{{ project | replace(" ", "_") }}_{{ deploy_environment }}.tar'
+
+- name: start docker container
+  command: 'docker run --name={{ project | replace(" ", "-") }}-{{ deploy_environment }} -d -v ~/{{ project | replace(" ", "_") }}_{{ deploy_environment }}_logs:/home/ubuntu/b2bm/logs -p 4000:8081 --rm {{ project | replace(" ", "-") }}:{{ deploy_environment }}'
