@@ -12,4 +12,4 @@
   command: 'docker load -i /tmp/{{ project | replace(" ", "_") }}_{{ deploy_environment }}.tar'
 
 - name: start docker container
-  command: 'docker run --name={{ project | replace(" ", "-") }}-{{ deploy_environment }} -d -v ~/{{ project | replace(" ", "_") }}_{{ deploy_environment }}_logs:/home/ubuntu/b2bm/logs -p 4000:8081 --rm {{ project | replace(" ", "-") }}:{{ deploy_environment }}'
+  command: 'docker run --name={{ project | replace(" ", "-") }}-{{ deploy_environment }} -d -v ~/{{ project | replace(" ", "_") }}_{{ deploy_environment }}_logs:{{ code.log_path }} -p {{ docker.host_port }}:{{ docker.container_port }} --rm {{ project | replace(" ", "-") }}:{{ deploy_environment }}'

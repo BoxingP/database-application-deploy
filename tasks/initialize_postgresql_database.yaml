@@ -1,8 +1,8 @@
 ---
 - name: upload database initialize scripts to db server
   ansible.posix.synchronize:
-    src: '/tmp/b2b_marketplace_code/db/'
-    dest: '/tmp/postgresql_scripts/'
+    src: '{{ code.path }}/db/'
+    dest: '{{ postgresql.path }}/'
     mode: push
     delete: yes
     recursive: yes
@@ -10,34 +10,24 @@
 
 - name: remove exist databases
   community.postgresql.postgresql_db:
-    name: '{{ item }}'
+    name: '{{ item.name }}'
     port: '{{ postgresql.port }}'
     state: absent
   become: yes
   become_user: postgres
   loop:
-    - b2b_config
-    - b2b_marketplace
-    - quartz
+    '{{ postgresql.database }}'
 
-- name: initialize cache db
-  command: 'psql --file=/tmp/postgresql_scripts/cache_db_ddl.sql --port={{ postgresql.port }}'
+- name: initialize databases
+  command: 'psql --file={{ postgresql.path }}/{{ item.init_file }} --port={{ postgresql.port }}'
   become: yes
   become_user: postgres
-
-- name: initialize config db
-  command: 'psql --file=/tmp/postgresql_scripts/config_db_ddl.sql --port={{ postgresql.port }}'
-  become: yes
-  become_user: postgres
-
-- name: initialize quartz db
-  command: 'psql --file=/tmp/postgresql_scripts/quartz_postgre_init.sql --port={{ postgresql.port }}'
-  become: yes
-  become_user: postgres
+  loop:
+    '{{ postgresql.database }}'
 
 - name: ensure user has the access, step 1
   community.postgresql.postgresql_privs:
-    db: '{{ item }}'
+    db: '{{ item.name }}'
     port: '{{ postgresql.port }}'
     role: '{{ postgresql.user }}'
     objs: ALL_DEFAULT
@@ -47,13 +37,11 @@
   become: yes
   become_user: postgres
   loop:
-    - b2b_config
-    - b2b_marketplace
-    - quartz
+    '{{ postgresql.database }}'
 
 - name: ensure user has the access, step 2
   community.postgresql.postgresql_privs:
-    db: '{{ item }}'
+    db: '{{ item.name }}'
     port: '{{ postgresql.port }}'
     role: '{{ postgresql.user }}'
     objs: ALL_IN_SCHEMA
@@ -62,13 +50,11 @@
   become: yes
   become_user: postgres
   loop:
-    - b2b_config
-    - b2b_marketplace
-    - quartz
+    '{{ postgresql.database }}'
 
 - name: ensure user has the access, step 3
   community.postgresql.postgresql_privs:
-    db: '{{ item }}'
+    db: '{{ item.name }}'
     port: '{{ postgresql.port }}'
     role: '{{ postgresql.user }}'
     objs: ALL_IN_SCHEMA
@@ -77,6 +63,4 @@
   become: yes
   become_user: postgres
   loop:
-    - b2b_config
-    - b2b_marketplace
-    - quartz
+    '{{ postgresql.database }}'
