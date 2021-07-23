@@ -1,0 +1,21 @@
+---
+- name: update yum cache
+  yum:
+    update_cache: yes
+  become: yes
+  ignore_errors: yes
+
+- name: update all packages
+  yum:
+    name: '*'
+    state: latest
+  become: yes
+
+- name: install required packages
+  yum:
+    name:
+      - libselinux-python
+      - libselinux-python3
+      - libsemanage-python
+    state: present
+  become: yes

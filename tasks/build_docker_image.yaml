@@ -6,46 +6,36 @@
     mode: 0644
     force: yes
 
-- name: upgrade pip and related
-  pip:
-    name:
-      - pip
-      - setuptools
-      - wheel
-    state: latest
-    virtualenv: '{{ virtualenv }}'
-    virtualenv_command: /usr/bin/python3 -m venv
-  become: yes
-
-- name: create python virtualenv
-  pip:
-    name:
-      - docker==5.0.0
-      - six==1.16.0
-    virtualenv: '{{ virtualenv }}'
-    virtualenv_command: /usr/bin/python3 -m venv
-  become: yes
-
 - name: override the app properties
   template:
     src: application.properties.j2
     dest: '{{ code.path }}/src/main/resources/application-{{ deploy_environment }}.properties'
     force: yes
 
-- block:
-    - name: build docker image
-      community.docker.docker_image:
-        name: '{{ project | replace(" ", "-") }}'
-        tag: '{{ deploy_environment }}'
-        build:
-          path: '{{ code.path }}'
-        source: build
-        state: present
-        force_source: yes
-        force_tag: yes
-    - name: save docker image to tar file
-      command: 'docker save -o /tmp/{{ project | replace(" ", "_") }}_{{ deploy_environment }}.tar {{ project | replace(" ", "-") }}:{{ deploy_environment }}'
-  vars:
-    ansible_python_interpreter: '{{ virtualenv }}/bin/python3'
-  environment:
-    PATH: '{{ virtualenv }}/bin:{{ hostvars[inventory_hostname].ansible_env.PATH }}'
+- name: build docker image
+
+  block:
+  - name: log into private registry
+    community.docker.docker_login:
+      registry_url: 127.0.0.1:443
+      username: '{{ registry_user }}'
+      password: '{{ registry_password }}'
+      reauthorize: yes
+  - name: push docker image to private registry
+    community.docker.docker_image:
+      name: '{{ project | replace(" ", "-") }}'
+      tag: '{{ deploy_environment }}'
+      build:
+        path: '{{ code.path }}'
+      source: build
+      state: present
+      force_source: yes
+      force_tag: yes
+      repository: '127.0.0.1:443/{{ project | replace(" ", "-") }}'
+      push: yes
+
+  always:
+  - name: log out private registry
+    community.docker.docker_login:
+      registry_url: 127.0.0.1:443
+      state: absent

@@ -1,0 +1,7 @@
+---
+registry_container: private-registry
+registry_path: /etc/docker/registry
+registry_directory:
+  - auth
+  - certs
+registry_user: testuser

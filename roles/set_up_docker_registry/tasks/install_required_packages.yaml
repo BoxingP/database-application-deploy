@@ -1,0 +1,10 @@
+---
+- name: install for debian
+  import_tasks: debian.yaml
+  when: ansible_facts['os_family']|lower == 'debian'
+
+- name: install for rhel
+  import_tasks: redhat.yaml
+  vars:
+    ansible_python_interpreter: /usr/bin/python2
+  when: ansible_facts['os_family']|lower == 'redhat'

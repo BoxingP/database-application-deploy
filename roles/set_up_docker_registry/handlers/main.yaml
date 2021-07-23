@@ -1,0 +1,7 @@
+---
+- name: restart docker
+  service:
+    name: docker
+    state: restarted
+  listen: docker config changed
+  become: yes

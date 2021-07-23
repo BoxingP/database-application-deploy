@@ -1,0 +1,130 @@
+---
+- name: get registry host
+  set_fact:
+    registry_host: '{{ hostvars[inventory_hostname].ansible_host }}'
+  when: hostvars[inventory_hostname].ansible_host is defined
+
+- name: get registry host
+  set_fact:
+    registry_host: 127.0.0.1
+  when: hostvars[inventory_hostname].ansible_connection is defined and
+        hostvars[inventory_hostname].ansible_connection == 'local'
+
+- name: get registry path
+  set_fact:
+    registry_path: '{{ registry_path }}'
+
+- name: create directory to store configuration and certificates
+  file:
+    path: '{{ registry_path }}/{{ item }}'
+    state: directory
+    mode: 0755
+  become: yes
+  loop:
+    '{{ registry_directory }}'
+
+- name: install the required packages
+  import_tasks: install_required_packages.yaml
+
+- name: generate private key
+  openssl_privatekey:
+    path: '{{ registry_path }}/certs/docker.key'
+    size: 2048
+    mode: 0600
+    state: present
+  become: yes
+
+- name: generate certificate signing request
+  openssl_csr:
+    path: '{{ registry_path }}/certs/docker.csr'
+    privatekey_path: '{{ registry_path }}/certs/docker.key'
+    subject_alt_name: 'IP:{{ registry_host }}'
+    mode: 0644
+    state: present
+  become: yes
+
+- name: generate certificate
+  community.crypto.x509_certificate:
+    path: '{{ registry_path }}/certs/docker.crt'
+    privatekey_path: '{{ registry_path }}/certs/docker.key'
+    csr_path: '{{ registry_path }}/certs/docker.csr'
+    provider: selfsigned
+    mode: 0644
+    state: present
+  become: yes
+
+- name: get registry user
+  set_fact:
+    registry_user: '{{ registry_user }}'
+
+- name: generate a random password for registry user
+  set_fact:
+    registry_password: "{{ lookup('password', '/dev/null length=20 chars=ascii_letters,digits') }}"
+
+- name: configure credentials
+  docker_container:
+    name: httpd
+    image: httpd:2
+    auto_remove: yes
+    volumes:
+      - '{{ registry_path }}/auth:/auth'
+    working_dir: /auth
+    entrypoint:
+      - 'htpasswd -Bbc htpasswd {{ registry_user }} {{ registry_password }}'
+
+- name: ensure exist docker registry stopped
+  docker_container:
+    name: '{{ registry_container }}'
+    state: stopped
+
+- name: create docker registry
+  docker_container:
+    name: '{{ registry_container }}'
+    image: registry:2
+    state: started
+    restart_policy: always
+    detach: yes
+    volumes:
+      - /etc/docker/registry:/var/lib/registry
+      - '{{ registry_path }}/auth:/auth'
+      - '{{ registry_path }}/certs:/certs'
+    published_ports:
+      - "443:443"
+    env:
+      REGISTRY_AUTH: "htpasswd"
+      REGISTRY_AUTH_HTPASSWD_REALM: "Registry Realm"
+      REGISTRY_AUTH_HTPASSWD_PATH: "/auth/htpasswd"
+      REGISTRY_HTTP_TLS_CERTIFICATE: "/certs/docker.crt"
+      REGISTRY_HTTP_TLS_KEY: "/certs/docker.key"
+      REGISTRY_HTTP_ADDR: "0.0.0.0:443"
+
+- name: check if selinux is enabled
+  command: /usr/sbin/getenforce
+  register: selinux_status
+  ignore_errors: yes
+  changed_when: false
+  become: yes
+
+- name: set httpd_can_network_connect flag on and keep it persistent across reboots
+  shell: /usr/sbin/setsebool -P httpd_can_network_connect 1
+  when: selinux_status.rc == 0 and selinux_status.stdout|lower == 'enforcing'
+  become: yes
+
+- name: save registry credential to file
+  block:
+    - name: generate registry credential
+      template:
+        src: registry_credential.j2
+        dest: '/tmp/docker_registry_credential.yaml'
+        force: yes
+    - name: store file local
+      fetch:
+        src: '/tmp/docker_registry_credential.yaml'
+        dest: '/tmp/'
+        flat: yes
+  always:
+    - name: remove file remote
+      file:
+        path: '/tmp/docker_registry_credential.yaml'
+        state: absent
+      notify: docker config changed

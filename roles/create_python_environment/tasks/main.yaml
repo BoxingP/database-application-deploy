@@ -6,3 +6,25 @@
 - name: install python3 for rhel
   import_tasks: redhat.yaml
   when: ansible_facts['os_family']|lower == 'redhat'
+
+- name: upgrade pip and related
+  pip:
+    name:
+      - pip
+      - setuptools
+      - wheel
+    state: latest
+    virtualenv: '{{ virtualenv }}'
+    virtualenv_command: /usr/bin/python3 -m venv
+  become: yes
+
+- name: create python virtualenv
+  pip:
+    name:
+      - docker==5.0.0
+      - six==1.16.0
+      - pyOpenSSL==20.0.1
+      - selinux==0.2.1
+    virtualenv: '{{ virtualenv }}'
+    virtualenv_command: /usr/bin/python3 -m venv
+  become: yes

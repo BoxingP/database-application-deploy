@@ -79,8 +79,18 @@
     - name: install docker
       include_role:
         name: install_docker
-    - name: build docker image
-      import_tasks: tasks/build_docker_image.yaml
+    - name: build docker
+      block:
+      - name: set up docker registry
+        import_role:
+          name: set_up_docker_registry
+      - name: build docker image
+        import_tasks: tasks/build_docker_image.yaml
+      vars:
+        ansible_python_interpreter: '{{ virtualenv }}/bin/python3'
+      environment:
+        PATH: '{{ virtualenv }}/bin:{{ hostvars[inventory_hostname].ansible_env.PATH }}'
+
 
 - name: set up app server
   hosts: app_servers
