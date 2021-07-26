@@ -91,7 +91,6 @@
       environment:
         PATH: '{{ virtualenv }}/bin:{{ hostvars[inventory_hostname].ansible_env.PATH }}'
 
-
 - name: set up app server
   hosts: app_servers
   gather_facts: no

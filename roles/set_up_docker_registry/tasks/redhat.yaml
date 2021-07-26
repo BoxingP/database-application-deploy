@@ -16,6 +16,5 @@
     name:
       - libselinux-python
       - libselinux-python3
-      - libsemanage-python
     state: present
   become: yes

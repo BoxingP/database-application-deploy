@@ -14,6 +14,9 @@
   set_fact:
     registry_path: '{{ registry_path }}'
 
+- name: install the required packages
+  import_tasks: install_required_packages.yaml
+
 - name: create directory to store configuration and certificates
   file:
     path: '{{ registry_path }}/{{ item }}'
@@ -22,9 +25,6 @@
   become: yes
   loop:
     '{{ registry_directory }}'
-
-- name: install the required packages
-  import_tasks: install_required_packages.yaml
 
 - name: generate private key
   openssl_privatekey:
@@ -72,10 +72,12 @@
     entrypoint:
       - 'htpasswd -Bbc htpasswd {{ registry_user }} {{ registry_password }}'
 
-- name: ensure exist docker registry stopped
+- name: ensure exist docker registry is removed
   docker_container:
     name: '{{ registry_container }}'
-    state: stopped
+    image: registry:2
+    force_kill: yes
+    keep_volumes: no
 
 - name: create docker registry
   docker_container:
