@@ -1,4 +1,4 @@
-- name: install required repos
+- name: install required repos for centos
   yum:
     name:
       - centos-release-scl-rh
@@ -7,6 +7,26 @@
   become: yes
   when:
     - ansible_distribution|lower == 'centos'
+
+- name: install required dependencies for redhat
+  block:
+    - name: enable redhat repository
+      community.general.rhsm_repository:
+        name:
+          - rhel-7-server-devtools-rpms
+          - rhel-server-rhscl-7-rpms
+        state: enabled
+      become: yes
+    - name: install required packages for redhat
+      yum:
+        name:
+          - devtoolset-8
+          - llvm-toolset-7.0
+          - http://mirror.centos.org/centos/7/os/x86_64/Packages/libedit-devel-3.0-12.20121213cvs.el7.x86_64.rpm
+        state: present
+      become: yes
+  when:
+    - ansible_distribution|lower == 'redhat'
 
 - name: install required packages
   yum:

@@ -6,7 +6,7 @@
     mode: push
     delete: yes
     recursive: yes
-  delegate_to: '{{groups["build_server"][0]}}'
+  delegate_to: '{{groups[deploy_environment + "_build_server"][0]}}'
 
 - name: remove exist databases
   community.postgresql.postgresql_db:

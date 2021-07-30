@@ -10,6 +10,12 @@
     state: latest
   become: yes
 
+- name: ensure epel repo present
+  yum:
+    name: '{{ postgresql_epel_release_url }}'
+    state: present
+  become: yes
+
 - name: install required packages
   yum:
     name:

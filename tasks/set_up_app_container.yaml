@@ -5,16 +5,16 @@
 
 - name: upload certificate to app server
   ansible.posix.synchronize:
-    src: '{{ hostvars[groups["build_server"][0]].registry_path | default("") }}/certs/docker.crt'
+    src: '{{ hostvars[groups[deploy_environment + "_build_server"][0]].registry_path | default("") }}/certs/docker.crt'
     dest: '/tmp/docker.crt'
     mode: push
     delete: yes
     recursive: yes
-  delegate_to: '{{ groups["build_server"][0] }}'
+  delegate_to: '{{ groups[deploy_environment + "_build_server"][0] }}'
 
 - name: ensure storing certificate directory exists
   file:
-    path: '/etc/docker/certs.d/{{ hostvars[groups["build_server"][0]].ansible_host }}:443/'
+    path: '/etc/docker/certs.d/{{ hostvars[groups[deploy_environment + "_build_server"][0]].ansible_host }}:443/'
     state: directory
     mode: 0755
   become: yes
@@ -32,13 +32,13 @@
 
   block:
     - name: log into private registry
-      command: 'docker login {{ hostvars[groups["build_server"][0]].ansible_host }}:{{ docker_registry.port }} --username {{ docker_registry.user }} --password {{ docker_registry.password }}'
+      command: 'docker login {{ hostvars[groups[deploy_environment + "_build_server"][0]].ansible_host }}:{{ docker_registry.port }} --username {{ docker_registry.user }} --password {{ docker_registry.password }}'
     - name: pull docker image from private registry
-      command: 'docker pull {{ hostvars[groups["build_server"][0]].ansible_host }}:{{ docker_registry.port }}/{{ project | replace(" ", "-") }}:{{ deploy_environment }}'
+      command: 'docker pull {{ hostvars[groups[deploy_environment + "_build_server"][0]].ansible_host }}:{{ docker_registry.port }}/{{ project | replace(" ", "-") }}:{{ deploy_environment }}'
 
   always:
     - name: log out private registry
-      command: 'docker logout {{ hostvars[groups["build_server"][0]].ansible_host }}:{{ docker_registry.port }}'
+      command: 'docker logout {{ hostvars[groups[deploy_environment + "_build_server"][0]].ansible_host }}:{{ docker_registry.port }}'
 
 - name: start docker container
-  command: 'docker run --name={{ project | replace(" ", "-") }}-{{ deploy_environment }} -d -v ~/{{ project | replace(" ", "_") }}_{{ deploy_environment }}_logs:{{ code.log_path }} -p {{ docker.host_port }}:{{ docker.container_port }} --rm {{ hostvars[groups["build_server"][0]].ansible_host }}:{{ docker_registry.port }}/{{ project | replace(" ", "-") }}:{{ deploy_environment }}'
+  command: 'docker run --name={{ project | replace(" ", "-") }}-{{ deploy_environment }} -d -v ~/{{ project | replace(" ", "_") }}_{{ deploy_environment }}:{{ code.var }} -p {{ docker.host_port }}:{{ docker.container_port }} --rm {{ hostvars[groups[deploy_environment + "_build_server"][0]].ansible_host }}:{{ docker_registry.port }}/{{ project | replace(" ", "-") }}:{{ deploy_environment }}'

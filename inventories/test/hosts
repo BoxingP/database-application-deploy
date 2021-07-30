@@ -1,0 +1,10 @@
+b2b_t1 ansible_host=10.68.65.74 ansible_port=22 ansible_user=deploy ansible_password='{{ login_password }}' ansible_become_password='{{ become_password }}' ansible_become_method=sudo
+
+[test_app_servers]
+b2b_t1
+
+[test_db_servers]
+b2b_t1
+
+[test_build_server]
+b2b_t1

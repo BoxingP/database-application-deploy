@@ -1,4 +1,13 @@
 ---
+- name: enable redhat repository
+  community.general.rhsm_repository:
+    name:
+      - rhel-7-server-optional-rpms
+    state: enabled
+  become: yes
+  when:
+    - ansible_distribution|lower == 'redhat'
+
 - name: install python3 and related packages
   yum:
     name:

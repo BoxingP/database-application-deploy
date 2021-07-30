@@ -21,8 +21,8 @@
 - name: allow outside connection
   blockinfile:
     path: /var/lib/pgsql/12/data/postgresql.conf
-    marker: '# {mark} ANSIBLE MANAGED BLOCK'
-    insertafter: '# - Connection Settings -'
+    marker: '# {mark} ANSIBLE MANAGED BLOCK LISTEN ADDRESS'
+    insertafter: '^.+-.+Connection.+Settings.+-$'
     block: |
       listen_addresses = '*'
     state: present

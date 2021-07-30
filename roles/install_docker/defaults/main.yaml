@@ -7,4 +7,4 @@ docker_apt_repository: 'deb [arch={{ docker_apt_arch }}] {{ docker_repo_url }}/{
 docker_yum_gpg_key: '{{ docker_repo_url }}/centos/gpg'
 docker_yum_repo_url: '{{ docker_repo_url }}/{{ (ansible_distribution == "Fedora") | ternary("fedora","centos") }}/docker-ce.repo'
 docker_users:
-  - boxing
+  - '{{ ansible_user_id }}'

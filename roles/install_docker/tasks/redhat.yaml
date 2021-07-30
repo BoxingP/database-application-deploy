@@ -28,6 +28,15 @@
     mode: 0644
   become: yes
 
+- name: enable redhat repository
+  community.general.rhsm_repository:
+    name:
+      - rhel-7-server-extras-rpms
+    state: enabled
+  become: yes
+  when:
+    - ansible_distribution|lower == 'redhat'
+
 - name: install docker engine
   yum:
     name:

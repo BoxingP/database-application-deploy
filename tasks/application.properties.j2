@@ -63,8 +63,8 @@ spring.datasource.druid.e1.test-on-borrow=false
 spring.datasource.druid.e1.test-on-return=false
 spring.datasource.druid.e1.pool-prepared-statements=true
 spring.datasource.druid.e1.filters=stat,wall,slf4j
-# read time out = 600s
-spring.datasource.druid.e1.connection-properties=druid.stat.mergeSql=true;druid.stat.slowSqlMillis=8000;oracle.jdbc.ReadTimeout=600000
+# read time out = 900s
+spring.datasource.druid.e1.connection-properties=druid.stat.mergeSql=true;druid.stat.slowSqlMillis=8000;oracle.jdbc.ReadTimeout=900000
 spring.datasource.druid.e1.use-global-data-source-stat=true
 
 # quartz db config
@@ -100,15 +100,12 @@ spring.aop.proxy-target-class=true
 # AWS S3
 aws.region={{ aws.region }}
 tf.s3.bucket={{ aws.tf_s3 }}
-cas.s3.bucket={{ aws.cas_s3 }}
-bak.s3.bucket={{ aws.backup_s3 }}
 # email config
 mail.config.server={{ email.server }}
 mail.config.account={{ email.account }}
 mail.config.code={{ email.password }}
 spring.mail.default-encoding=UTF-8
 business.mail.to.address={{ email.to_business }}
-operator.mail.to.address={{ email.to_operator }}
 
 #logging.level.org.apache.kafka.*=DEBUG
 

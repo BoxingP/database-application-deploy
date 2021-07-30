@@ -5,9 +5,6 @@
 - name: load ssh key
   hosts: localhost
   gather_facts: no
-  vars:
-    project: b2b marketplace
-    deploy_environment: dev
   vars_files:
     - 'vars/{{ project | replace(" ", "_") }}_{{ deploy_environment }}_config.yaml'
   tasks:
@@ -27,11 +24,9 @@
       environment: '{{ env_vars }}'
 
 - name: fetch project codes
-  hosts: build_server
+  hosts: '{{ deploy_environment }}_build_server'
   gather_facts: no
   vars:
-    project: b2b marketplace
-    deploy_environment: dev
     ansible_ssh_common_args: '-o IdentityAgent={{ hostvars["localhost"]["env_vars"]["SSH_AUTH_SOCK"] }}'
   vars_files:
     - 'vars/{{ project | replace(" ", "_") }}_{{ deploy_environment }}_config.yaml'
@@ -43,11 +38,8 @@
       import_tasks: tasks/init_workspace.yaml
 
 - name: set up db server
-  hosts: db_servers
+  hosts: '{{ deploy_environment }}_db_servers'
   gather_facts: no
-  vars:
-    project: b2b marketplace
-    deploy_environment: dev
   vars_files:
     - 'vars/{{ project | replace(" ", "_") }}_{{ deploy_environment }}_config.yaml'
   tasks:
@@ -61,11 +53,9 @@
       import_tasks: tasks/initialize_postgresql_database.yaml
 
 - name: build project codes
-  hosts: build_server
+  hosts: '{{ deploy_environment }}_build_server'
   gather_facts: no
   vars:
-    project: b2b marketplace
-    deploy_environment: dev
     virtualenv: '{{ hostvars[inventory_hostname].ansible_env.HOME }}/.virtualenvs/{{ project | replace(" ", "-") }}-{{ deploy_environment }}-env'
   vars_files:
     - 'vars/{{ project | replace(" ", "_") }}_{{ deploy_environment }}_config.yaml'
@@ -92,11 +82,8 @@
         PATH: '{{ virtualenv }}/bin:{{ hostvars[inventory_hostname].ansible_env.PATH }}'
 
 - name: set up app server
-  hosts: app_servers
+  hosts: '{{ deploy_environment }}_app_servers'
   gather_facts: no
-  vars:
-    project: b2b marketplace
-    deploy_environment: dev
   vars_files:
     - 'vars/{{ project | replace(" ", "_") }}_{{ deploy_environment }}_config.yaml'
   tasks:
