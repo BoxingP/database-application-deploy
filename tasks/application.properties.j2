@@ -1,4 +1,4 @@
-#Druid连接池
+#Druid connection pool
 spring.datasource.type=com.alibaba.druid.pool.DruidDataSource
 #b2b cache db config
 spring.datasource.druid.b2b.name=b2b_marketplace
@@ -89,7 +89,7 @@ spring.datasource.druid.quartz.filters=stat,wall,slf4j
 spring.datasource.druid.quartz.connection-properties=druid.stat.mergeSql=true;druid.stat.slowSqlMillis=8000
 spring.datasource.druid.quartz.use-global-data-source-stat=true
 
-#Druid监控端配置
+#Druid monitor
 spring.datasource.druid.stat-view-servlet.login-username={{ druid.user }}
 spring.datasource.druid.stat-view-servlet.login-password={{ druid.password }}
 spring.datasource.druid.stat-view-servlet.enabled=true
@@ -107,20 +107,16 @@ mail.config.code={{ email.password }}
 spring.mail.default-encoding=UTF-8
 business.mail.to.address={{ email.to_business }}
 
-#logging.level.org.apache.kafka.*=DEBUG
+# kafka listener log level
+logging.level.com.thermofisher.dsc.b2b.consumer.listener=INFO
 
-# spring cloud stream kafka
+# PROD
 spring.cloud.stream.kafka.binder.brokers={{ kafka.brokers }}
 spring.cloud.stream.kafka.binder.zkNodes={{ kafka.nodes }}
 
 spring.cloud.stream.kafka.bindings.productContent.consumer.enableDlq=true
 spring.cloud.stream.kafka.bindings.productImage.consumer.enableDlq=true
 spring.cloud.stream.kafka.bindings.productTaxonomy.consumer.enableDlq=true
-
-## limit message size within 4M, default 1M
-#spring.cloud.stream.kafka.bindings.productContent.consumer.configuration.max.partition.fetch.bytes=4194304
-#spring.cloud.stream.kafka.bindings.productImage.consumer.configuration.max.partition.fetch.bytes=4194304
-#spring.cloud.stream.kafka.bindings.productTaxonomy.consumer.configuration.max.partition.fetch.bytes=4194304
 
 spring.cloud.stream.kafka.bindings.productContent.consumer.configuration.request.timeout.ms=60000
 spring.cloud.stream.kafka.bindings.productImage.consumer.configuration.request.timeout.ms=60000
@@ -134,3 +130,8 @@ spring.cloud.stream.bindings.productImage.group={{ product.image_group }}
 
 spring.cloud.stream.bindings.productTaxonomy.destination=stream.hybris.browse.thermofisher.tfgptcategory.source
 spring.cloud.stream.bindings.productTaxonomy.group={{ product.taxonomy_group }}
+
+# casmart data volume alert api
+casmart.data.volume.url={{ casmart.url }}
+casmart.appid={{ casmart.appid }}
+casmart.srt={{ casmart.srt }}

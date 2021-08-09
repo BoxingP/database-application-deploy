@@ -1,6 +1,6 @@
 - name: remove exist codes files directory
   file:
-    path: '{{ code.path }}'
+    path: '{{ code.location }}'
     state: absent
 
 - name: git checkout codes
@@ -8,11 +8,11 @@
     repo: '{{ code.repo }}'
     depth: 1
     version: develop
-    dest: '{{ code.path }}'
+    dest: '{{ code.location }}'
     accept_hostkey: yes
     force: yes
 
 - name: remove useless files
   file:
-    path: '{{ code.path }}/.git'
+    path: '{{ code.location }}/.git'
     state: absent

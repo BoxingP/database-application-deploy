@@ -1,5 +1,6 @@
 FROM openjdk:8-jdk-alpine
-RUN apk add --no-cache curl tar bash
+RUN apk add --update ttf-dejavu && rm -rf /var/cache/apk/*
+RUN apk add --no-cache curl tar bash tzdata
 ARG MAVEN_MAJOR=3
 ARG MAVEN_VERSION=3.8.1
 ARG MAVEN_FILE=apache-maven-${MAVEN_VERSION}-bin.tar.gz
@@ -9,8 +10,9 @@ RUN mkdir -p /usr/share/maven && curl -fsSL -o /tmp/apache-maven.tar.gz $BASE_UR
 ENV MAVEN_HOME=/usr/share/maven
 ENV MAVEN_CONFIG="${USER_HOME_DIR}/.m2"
 ENV MAVEN_OPTS="-XX:+TieredCompilation -XX:TieredStopAtLevel=1"
-RUN mkdir -p {{ docker.code_path }} {{ docker.log_path }} {{ docker.csv_path }} {{ docker.excel_path }}
+RUN mkdir -p {{ docker.code_path }}
 WORKDIR {{ docker.code_path }}
 COPY . {{ docker.code_path }}/
+ENV TZ="Asia/Shanghai"
 RUN mvn clean package -Dmaven.test.skip=true && mv {{ docker.code_path }}/target/{{ code.jar_file }} {{ docker.code_path }}/{{ code.jar_file }} && rm -rf target
 CMD java -jar {{ code.jar_file }} --spring.profiles.active={{ deploy_environment }} --aws.ak={{ aws.access_key }} --aws.sk={{ aws.secret_access_key }}

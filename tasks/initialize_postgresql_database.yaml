@@ -1,7 +1,7 @@
 ---
 - name: upload database initialize scripts to db server
   ansible.posix.synchronize:
-    src: '{{ code.path }}/db/'
+    src: '{{ code.location }}/db/'
     dest: '{{ postgresql.path }}/'
     mode: push
     delete: yes

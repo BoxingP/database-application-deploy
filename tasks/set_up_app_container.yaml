@@ -40,5 +40,25 @@
     - name: log out private registry
       command: 'docker logout {{ hostvars[groups[deploy_environment + "_build_server"][0]].ansible_host }}:{{ docker_registry.port }}'
 
+- name: create directories storing related files
+  file:
+    path: '{{ code.path }}/{{ item }}'
+    state: directory
+    mode: '0755'
+  loop:
+    '{{ code.folder }}'
+  become: yes
+
+- name: check for containers that actually exist
+  shell: 'docker ps -aq --filter "name={{ item }}"'
+  loop:
+    - '{{ project | replace(" ", "-") }}-{{ deploy_environment }}'
+  register: found_containers
+
+- name: remove the containers found
+  shell: 'docker stop {{ item.item }} && docker rm -f {{ item.item }}'
+  loop: '{{ found_containers.results }}'
+  when: item.stdout
+
 - name: start docker container
-  command: 'docker run --name={{ project | replace(" ", "-") }}-{{ deploy_environment }} -d -v ~/{{ project | replace(" ", "_") }}_{{ deploy_environment }}:{{ code.var }} -p {{ docker.host_port }}:{{ docker.container_port }} --rm {{ hostvars[groups[deploy_environment + "_build_server"][0]].ansible_host }}:{{ docker_registry.port }}/{{ project | replace(" ", "-") }}:{{ deploy_environment }}'
+  command: 'docker run --name={{ project | replace(" ", "-") }}-{{ deploy_environment }} -d -v {{ code.path }}:{{ code.path }} -p {{ docker.host_port }}:{{ docker.container_port }} --rm {{ hostvars[groups[deploy_environment + "_build_server"][0]].ansible_host }}:{{ docker_registry.port }}/{{ project | replace(" ", "-") }}:{{ deploy_environment }}'

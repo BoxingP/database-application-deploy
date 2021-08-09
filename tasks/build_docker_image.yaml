@@ -2,14 +2,14 @@
 - name: generate dockerfile
   template:
     src: Dockerfile.j2
-    dest: '{{ code.path }}/Dockerfile'
+    dest: '{{ code.location }}/Dockerfile'
     mode: 0644
     force: yes
 
 - name: override the app properties
   template:
     src: application.properties.j2
-    dest: '{{ code.path }}/src/main/resources/application-{{ deploy_environment }}.properties'
+    dest: '{{ code.location }}/src/main/resources/application-{{ deploy_environment }}.properties'
     force: yes
 
 - name: build docker image
@@ -26,7 +26,7 @@
       name: '{{ project | replace(" ", "-") }}'
       tag: '{{ deploy_environment }}'
       build:
-        path: '{{ code.path }}'
+        path: '{{ code.location }}'
       source: build
       state: present
       force_source: yes
