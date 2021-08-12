@@ -1,8 +1,0 @@
-FROM openjdk:8-jdk-alpine
-RUN apk add --no-cache ttf-dejavu tzdata
-ARG USER_HOME_DIR="/root"
-RUN mkdir -p {{ docker.code_path }}
-WORKDIR {{ docker.code_path }}
-COPY ./target/{{ code.jar_file }} {{ docker.code_path }}/
-ENV TZ="Asia/Shanghai"
-CMD java -jar {{ code.jar_file }} --spring.profiles.active={{ deploy_environment }} --aws.ak={{ aws.access_key }} --aws.sk={{ aws.secret_access_key }}

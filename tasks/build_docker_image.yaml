@@ -1,10 +1,17 @@
 ---
 - name: generate dockerfile
-  template:
-    src: Dockerfile.j2
-    dest: '{{ code.location }}/Dockerfile'
-    mode: 0644
-    force: yes
+  block:
+    - name: get template from code repo
+      fetch:
+        src: '{{ code.location }}/Dockerfile.j2'
+        dest: /tmp/
+        flat: yes
+    - name: generate dockerfile from template
+      template:
+        src: /tmp/Dockerfile.j2
+        dest: '{{ code.location }}/Dockerfile'
+        mode: 0644
+        force: yes
 
 - name: override the app properties
   lineinfile:
