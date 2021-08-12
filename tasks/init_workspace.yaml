@@ -2,6 +2,7 @@
   file:
     path: '{{ code.location }}'
     state: absent
+  become: yes
 
 - name: git checkout codes
   git:
