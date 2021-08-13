@@ -1,0 +1,27 @@
+---
+- name: inspect maven image
+  community.docker.docker_image_info:
+    name:
+      - maven:3.8.1
+  register: result
+
+- block:
+    - name: ensure target directory exists
+      file:
+        path: '/tmp/maven'
+        state: directory
+    - name: upload dockerfile for maven
+      copy:
+        src: Dockerfile
+        dest: '/tmp/maven/Dockerfile'
+    - name: build docker image for maven
+      community.docker.docker_image:
+        name: maven
+        tag: 3.8.1
+        build:
+          path: '/tmp/maven'
+        source: build
+        state: present
+        force_source: yes
+        force_tag: yes
+  when: result.images | length != 1

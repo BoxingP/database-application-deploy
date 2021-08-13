@@ -21,15 +21,11 @@
     state: present
   loop: "{{ app_properties_config }}"
 
-- name: inspect maven image
-  community.docker.docker_image_info:
-    name:
-      - maven:3.8.1
-  register: result
-
 - name: install maven
-  import_tasks: install_maven.yaml
-  when: result.images | length != 1
+  include_role:
+    name: install_maven
+  vars:
+    installation_method: docker
 
 - name: build jar file
   docker_container:
