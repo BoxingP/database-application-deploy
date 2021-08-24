@@ -1,52 +1,101 @@
 ---
+- name: prepare for building housekeeping image
+  block:
+
+    - name: upload dockerfile to remote server
+      copy:
+        src: Dockerfile.j2
+        dest: '{{ component.location }}/Dockerfile.j2'
+
+    - name: upload files to remote server
+      copy:
+        src: cron.sh
+        dest: '{{ component.location }}/b2b/cron.sh'
+
+    - name: generate crontab file
+      lineinfile:
+        path: '{{ component.location }}/b2b/crontab'
+        line: '{{ item.cron }} python {{ docker.working_directory }}/{{ item.script }} >> /var/log/cron/cron.log 2>&1'
+        regexp: '^.+{{ item.script }}.+$'
+        state: present
+        insertafter: EOF
+        create: True
+      loop: '{{ schedule }}'
+
+    - name: make sure the empty last line exists in crontab file
+      lineinfile:
+        path: '{{ component.location }}/b2b/crontab'
+        regexp: '^#(.*)\Z$'
+        state: absent
+      check_mode: true
+      changed_when: false
+      register: check
+
+    - name: insert the empty last line in crontab file
+      lineinfile:
+        path: '{{ component.location }}/b2b/crontab'
+        line: '#'
+        insertafter: EOF
+        state: present
+      when: check.found == 0
+
+  when: component is defined and component.name == 'housekeeping'
+
 - name: generate dockerfile
   block:
     - name: get template from code repo
       fetch:
-        src: '{{ code.location }}/Dockerfile.j2'
+        src: '{{ component.location }}/Dockerfile.j2'
         dest: /tmp/
         flat: yes
     - name: generate dockerfile from template
       template:
         src: /tmp/Dockerfile.j2
-        dest: '{{ code.location }}/Dockerfile'
+        dest: '{{ component.location }}/Dockerfile'
         mode: 0644
         force: yes
 
-- name: override the app properties
-  lineinfile:
-    dest: '{{ code.location }}/src/main/resources/application-{{ deploy_environment }}.properties'
-    regexp: "^#?{{ item.option }}.+$"
-    line: '{{ item.option }}={{ item.value }}'
-    state: present
-  loop: "{{ app_properties_config }}"
+- name: prepare for building app image
+  block:
 
-- name: install maven
-  include_role:
-    name: install_maven
-  vars:
-    installation_method: docker
+    - name: override the app properties
+      lineinfile:
+        dest: '{{ component.location }}/src/main/resources/application-{{ deploy_environment }}.properties'
+        regexp: "^#?{{ config.option }}.+$"
+        line: '{{ config.option }}={{ config.value }}'
+        state: present
+      loop: "{{ app_properties_config }}"
+      loop_control:
+        loop_var: config
 
-- name: build jar file
-  docker_container:
-    name: maven
-    image: maven:3.8.1
-    interactive: yes
-    tty: yes
-    auto_remove: yes
-    volumes:
-      - '{{ code.location }}:/build'
-    working_dir: /build
-    entrypoint:
-      - 'mvn -f ./pom.xml clean package -Dmaven.test.skip=true'
+    - name: install maven
+      include_role:
+        name: install_maven
+      vars:
+        installation_method: docker
 
-- name: wait maven building finished
-  community.docker.docker_container_info:
-    name: maven
-  register: result
-  until: result.container == None
-  retries: 25
-  delay: 60
+    - name: build jar file
+      docker_container:
+        name: maven
+        image: maven:3.8.1
+        interactive: yes
+        tty: yes
+        auto_remove: yes
+        volumes:
+          - '{{ component.location }}:/build'
+        working_dir: /build
+        entrypoint:
+          - 'mvn -f ./pom.xml clean package -Dmaven.test.skip=true'
+
+    - name: wait maven building finished
+      community.docker.docker_container_info:
+        name: maven
+      register: result
+      until: result.container == None
+      retries: 25
+      delay: 60
+
+  when: component is defined and component.name == 'app'
 
 - name: build docker image
 
@@ -59,15 +108,15 @@
       reauthorize: yes
   - name: push docker image to private registry
     community.docker.docker_image:
-      name: '{{ project | replace(" ", "-") }}'
+      name: '{{ project | replace(" ", "-") }}-{{ component.name }}'
       tag: '{{ deploy_environment }}'
       build:
-        path: '{{ code.location }}'
+        path: '{{ component.location }}'
       source: build
       state: present
       force_source: yes
       force_tag: yes
-      repository: '127.0.0.1:443/{{ project | replace(" ", "-") }}'
+      repository: '127.0.0.1:443/{{ project | replace(" ", "-") }}-{{ component.name }}'
       push: yes
 
   always:

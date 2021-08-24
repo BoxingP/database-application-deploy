@@ -1,19 +1,19 @@
 - name: remove exist codes files directory
   file:
-    path: '{{ code.location }}'
+    path: '{{ component.location }}'
     state: absent
   become: yes
 
 - name: git checkout codes
   git:
-    repo: '{{ code.repo }}'
+    repo: '{{ component.repo }}'
     depth: 1
-    version: develop
-    dest: '{{ code.location }}'
+    version: '{{ component.branch }}'
+    dest: '{{ component.location }}'
     accept_hostkey: yes
     force: yes
 
 - name: remove useless files
   file:
-    path: '{{ code.location }}/.git'
+    path: '{{ component.location }}/.git'
     state: absent

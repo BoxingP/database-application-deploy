@@ -20,8 +20,9 @@
       set_fact:
         env_vars: '{{ env_vars_stdout.stdout }}'
     - name: add ssh key
-      shell: ssh-add '{{ code.repo_private_key }}'
+      shell: ssh-add '{{ item.repo_private_key }}'
       environment: '{{ env_vars }}'
+      loop: '{{ code }}'
 
 - name: fetch project codes
   hosts: '{{ deploy_environment }}_build_server'
@@ -35,7 +36,10 @@
       include_role:
         name: init_server_environment
     - name: init workspace
-      import_tasks: tasks/init_workspace.yaml
+      include_tasks: tasks/init_workspace.yaml
+      loop: '{{ code }}'
+      loop_control:
+        loop_var: component
 
 - name: set up db server
   hosts: '{{ deploy_environment }}_db_servers'
@@ -106,7 +110,10 @@
         import_role:
           name: set_up_docker_registry
       - name: build docker image
-        import_tasks: tasks/build_docker_image.yaml
+        include_tasks: tasks/build_docker_image.yaml
+        loop: '{{ code }}'
+        loop_control:
+          loop_var: component
       vars:
         ansible_python_interpreter: '{{ virtualenv }}/bin/python3'
       environment:
@@ -125,4 +132,4 @@
       include_role:
         name: install_docker
     - name: set up app container
-      import_tasks: tasks/set_up_app_container.yaml
+      import_tasks: tasks/set_up_docker_container.yaml

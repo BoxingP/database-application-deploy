@@ -1,7 +1,7 @@
 ---
 - name: upload database initialize scripts to db server
   ansible.posix.synchronize:
-    src: '{{ code.location }}/db/'
+    src: '{{ ( code | selectattr("name","defined") | selectattr("name","equalto","app") | first ).location }}/db/'
     dest: '{{ postgresql.path }}/'
     mode: push
     delete: yes

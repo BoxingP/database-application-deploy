@@ -34,7 +34,8 @@
     - name: log into private registry
       command: 'docker login {{ hostvars[groups[deploy_environment + "_build_server"][0]].ansible_host }}:{{ docker_registry.port }} --username {{ docker_registry.user }} --password {{ docker_registry.password }}'
     - name: pull docker image from private registry
-      command: 'docker pull {{ hostvars[groups[deploy_environment + "_build_server"][0]].ansible_host }}:{{ docker_registry.port }}/{{ project | replace(" ", "-") }}:{{ deploy_environment }}'
+      command: 'docker pull {{ hostvars[groups[deploy_environment + "_build_server"][0]].ansible_host }}:{{ docker_registry.port }}/{{ project | replace(" ", "-") }}-{{ item.name }}:{{ deploy_environment }}'
+      loop: '{{ code }}'
 
   always:
     - name: log out private registry
@@ -42,17 +43,16 @@
 
 - name: create directories storing related files
   file:
-    path: '{{ code.path }}/{{ item }}'
+    path: '{{ item.0.path }}/{{ item.1 }}'
     state: directory
+    recurse: yes
     mode: '0755'
-  loop:
-    '{{ code.folder }}'
+  loop: '{{ code|subelements("folder") }}'
   become: yes
 
 - name: check for containers that actually exist
-  shell: 'docker ps -aq --filter "name={{ item }}"'
-  loop:
-    - '{{ project | replace(" ", "-") }}-{{ deploy_environment }}'
+  shell: 'docker ps -aq --filter "name={{ project | replace(" ", "-") }}-{{ item.name }}-{{ deploy_environment }}"'
+  loop: '{{ code }}'
   register: found_containers
 
 - name: remove the containers found
@@ -60,5 +60,10 @@
   loop: '{{ found_containers.results }}'
   when: item.stdout
 
-- name: start docker container
-  command: 'docker run --name={{ project | replace(" ", "-") }}-{{ deploy_environment }} -d -v {{ code.path }}:{{ code.path }} -p {{ docker.host_port }}:{{ docker.container_port }} --rm {{ hostvars[groups[deploy_environment + "_build_server"][0]].ansible_host }}:{{ docker_registry.port }}/{{ project | replace(" ", "-") }}:{{ deploy_environment }}'
+- name: start app docker container
+  command: 'docker run --name={{ project | replace(" ", "-") }}-{{ item.name }}-{{ deploy_environment }} -d -v {{ item.path }}:{{ item.path }} -p {{ docker.host_port }}:{{ docker.container_port }} --rm {{ hostvars[groups[deploy_environment + "_build_server"][0]].ansible_host }}:{{ docker_registry.port }}/{{ project | replace(" ", "-") }}-{{ item.name }}:{{ deploy_environment }}'
+  loop: '{{ code | selectattr("name","defined") | selectattr("name","equalto","app") | list }}'
+
+- name: start housekeeping docker container
+  command: 'docker run --name={{ project | replace(" ", "-") }}-{{ item.name }}-{{ deploy_environment }} -d -v {{ item.path }}:{{ item.path }} -v {{ item.path }}/housekeeping/cron:/var/log/cron --rm {{ hostvars[groups[deploy_environment + "_build_server"][0]].ansible_host }}:{{ docker_registry.port }}/{{ project | replace(" ", "-") }}-{{ item.name }}:{{ deploy_environment }}'
+  loop: '{{ code | selectattr("name","defined") | selectattr("name","equalto","housekeeping") | list }}'
