@@ -1,1 +1,29 @@
 ---
+- name: update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 86400
+  become: yes
+  ignore_errors: yes
+
+- name: update all packages
+  apt:
+    upgrade: dist
+  become: yes
+
+- name: install required packages
+  apt:
+    name:
+      - python3-selinux
+    state: present
+  become: yes
+
+- name: install required packages
+  apt:
+    name:
+      - python-selinux
+    state: present
+  become: yes
+  when:
+    - ansible_facts['distribution']|lower == 'ubuntu'
+    - ansible_facts['distribution_release']|lower == 'bionic'

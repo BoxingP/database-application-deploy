@@ -1,6 +1,8 @@
 ---
 - name: install for debian
   import_tasks: debian.yaml
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
   when: ansible_facts['os_family']|lower == 'debian'
 
 - name: install for rhel
