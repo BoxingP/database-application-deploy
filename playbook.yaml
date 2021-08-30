@@ -1,3 +1,4 @@
+---
 - name: get hosts facts
   hosts: all
   gather_facts: yes
@@ -106,14 +107,14 @@
         name: install_docker
     - name: build docker
       block:
-      - name: set up docker registry
-        import_role:
-          name: set_up_docker_registry
-      - name: build docker image
-        include_tasks: tasks/build_docker_image.yaml
-        loop: '{{ code }}'
-        loop_control:
-          loop_var: component
+        - name: set up docker registry
+          import_role:
+            name: set_up_docker_registry
+        - name: build docker image
+          include_tasks: tasks/build_docker_image.yaml
+          loop: '{{ code }}'
+          loop_control:
+            loop_var: component
       vars:
         ansible_python_interpreter: '{{ virtualenv }}/bin/python3'
       environment:

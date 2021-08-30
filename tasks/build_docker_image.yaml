@@ -65,7 +65,7 @@
       lineinfile:
         dest: '{{ component.location }}/src/main/resources/application-{{ deploy_environment }}.properties'
         regexp: "^#?{{ config.option }}.+$"
-        line: '{{ config.option }}={{ config.value }}'
+        line: '{{ config.option }}={{ config.value|jasypt_encrypt if ( "password" in config.option|string ) else config.value }}'
         state: present
       loop: "{{ app_properties_config }}"
       loop_control:
@@ -103,27 +103,27 @@
 - name: build docker image
 
   block:
-  - name: log into private registry
-    community.docker.docker_login:
-      registry_url: 127.0.0.1:443
-      username: '{{ registry_user }}'
-      password: '{{ registry_password }}'
-      reauthorize: yes
-  - name: push docker image to private registry
-    community.docker.docker_image:
-      name: '{{ project | replace(" ", "-") }}-{{ component.name }}'
-      tag: '{{ deploy_environment }}'
-      build:
-        path: '{{ component.location }}'
-      source: build
-      state: present
-      force_source: yes
-      force_tag: yes
-      repository: '127.0.0.1:443/{{ project | replace(" ", "-") }}-{{ component.name }}'
-      push: yes
+    - name: log into private registry
+      community.docker.docker_login:
+        registry_url: 127.0.0.1:443
+        username: '{{ registry_user }}'
+        password: '{{ registry_password }}'
+        reauthorize: yes
+    - name: push docker image to private registry
+      community.docker.docker_image:
+        name: '{{ project | replace(" ", "-") }}-{{ component.name }}'
+        tag: '{{ deploy_environment }}'
+        build:
+          path: '{{ component.location }}'
+        source: build
+        state: present
+        force_source: yes
+        force_tag: yes
+        repository: '127.0.0.1:443/{{ project | replace(" ", "-") }}-{{ component.name }}'
+        push: yes
 
   always:
-  - name: log out private registry
-    community.docker.docker_login:
-      registry_url: 127.0.0.1:443
-      state: absent
+    - name: log out private registry
+      community.docker.docker_login:
+        registry_url: 127.0.0.1:443
+        state: absent
