@@ -65,7 +65,7 @@
       lineinfile:
         dest: '{{ component.location }}/src/main/resources/application-{{ deploy_environment }}.properties'
         regexp: "^#?{{ config.option }}.+$"
-        line: '{{ config.option }}={{ config.value|jasypt_encrypt if ( "password" in config.option|string ) else config.value }}'
+        line: '{{ config.option }}={{ config.value|jasypt_encrypt(jasypt.password) if ( "password" in config.option|string ) else config.value }}'
         state: present
       loop: "{{ app_properties_config }}"
       loop_control:

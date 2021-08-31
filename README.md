@@ -23,7 +23,7 @@ where the optional values of the environment variable are `dev` and `test`
    WORKDIR {{ docker.working_directory }}
    COPY ./target/{{ component.jar_file }} {{ docker.working_directory }}/
    ENV TZ="Asia/Shanghai"
-   CMD java -jar {{ component.jar_file }} --spring.profiles.active={{ deploy_environment }} --aws.ak="{{ aws.access_key | jasypt_encrypt }}" --aws.sk="{{ aws.secret_access_key | jasypt_encrypt }}"
+   CMD java -jar {{ component.jar_file }} --spring.profiles.active={{ deploy_environment }} --aws.ak="{{ aws.access_key | jasypt_encrypt(jasypt.password) }}" --aws.sk="{{ aws.secret_access_key | jasypt_encrypt(jasypt.password) }}"
    ```
 
 * housekeeping

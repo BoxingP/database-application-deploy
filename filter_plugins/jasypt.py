@@ -29,7 +29,7 @@ def get_output(result):
         return output.group()
 
 
-def jasypt_encrypt(value, password='B2B@2021', algorithm='PBEWITHHMACSHA512ANDAES_256', iterations=1000):
+def jasypt_encrypt(value, password, algorithm='PBEWITHHMACSHA512ANDAES_256', iterations=1000):
     jasypt_jar_path = get_file_path('filter_plugins/jasypt-1.9.3.jar')
     encrypt_command = '/usr/bin/java -cp ' + jasypt_jar_path + ' org.jasypt.intf.cli.JasyptPBEStringEncryptionCLI' \
                       + ' input=' + value + ' password=' + password + ' algorithm=' + algorithm \
@@ -43,7 +43,7 @@ def jasypt_encrypt(value, password='B2B@2021', algorithm='PBEWITHHMACSHA512ANDAE
         return 'ENC(' + str(get_output(result)).strip() + ')'
 
 
-def jasypt_decrypt(value, password='B2B@2021', algorithm='PBEWITHHMACSHA512ANDAES_256', iterations=1000):
+def jasypt_decrypt(value, password, algorithm='PBEWITHHMACSHA512ANDAES_256', iterations=1000):
     value = str(re.search(r'\((.*?)\)', value).group(1))
     jasypt_jar_path = get_file_path('filter_plugins/jasypt-1.9.3.jar')
     encrypt_command = '/usr/bin/java -cp ' + jasypt_jar_path + ' org.jasypt.intf.cli.JasyptPBEStringDecryptionCLI' \
