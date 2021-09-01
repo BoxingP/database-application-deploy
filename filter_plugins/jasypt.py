@@ -32,7 +32,7 @@ def get_output(result):
 def jasypt_encrypt(value, password, algorithm='PBEWITHHMACSHA512ANDAES_256', iterations=1000):
     jasypt_jar_path = get_file_path('filter_plugins/jasypt-1.9.3.jar')
     encrypt_command = '/usr/bin/java -cp ' + jasypt_jar_path + ' org.jasypt.intf.cli.JasyptPBEStringEncryptionCLI' \
-                      + ' input=' + value + ' password=' + password + ' algorithm=' + algorithm \
+                      + ' input=' + str(value) + ' password=' + password + ' algorithm=' + algorithm \
                       + ' keyObtentionIterations=' + str(iterations) \
                       + ' saltGeneratorClassName=org.jasypt.salt.RandomSaltGenerator' \
                       + ' providerName=SunJCE stringOutputType=base64' \
