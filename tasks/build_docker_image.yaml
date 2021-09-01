@@ -61,15 +61,18 @@
 - name: prepare for building app image
   block:
 
-    - name: override the app properties
-      lineinfile:
+    - name: get template from code repo
+      fetch:
+        src: '{{ component.location }}/src/main/resources/application.properties.j2'
+        dest: /tmp/
+        flat: yes
+
+    - name: generate application properties
+      template:
+        src: '/tmp/application.properties.j2'
         dest: '{{ component.location }}/src/main/resources/application-{{ deploy_environment }}.properties'
-        regexp: "^#?{{ config.option }}.+$"
-        line: '{{ config.option }}={{ config.value|jasypt_encrypt(jasypt.password) if ( "password" in config.option|string ) else config.value }}'
-        state: present
-      loop: "{{ app_properties_config }}"
-      loop_control:
-        loop_var: config
+        mode: 0644
+        force: yes
 
     - name: install maven
       include_role:
