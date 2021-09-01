@@ -1,11 +1,11 @@
 ---
 - name: include docker registry credential
   include_vars:
-    file: /tmp/docker_registry_credential.yaml
+    file: '/tmp/{{ hostvars[groups[deploy_environment + "_build_server"][0]].ansible_host | default("") }}_docker_registry_credential.yaml'
 
 - name: upload certificate to app server
   ansible.posix.synchronize:
-    src: '{{ hostvars[groups[deploy_environment + "_build_server"][0]].registry_path | default("") }}/certs/docker.crt'
+    src: '{{ docker_registry.path }}/certs/docker.crt'
     dest: '/tmp/docker.crt'
     mode: push
     delete: yes
@@ -14,7 +14,7 @@
 
 - name: ensure storing certificate directory exists
   file:
-    path: '/etc/docker/certs.d/{{ hostvars[groups[deploy_environment + "_build_server"][0]].ansible_host }}:443/'
+    path: '/etc/docker/certs.d/{{ docker_registry.host }}:443/'
     state: directory
     mode: 0755
   become: yes
@@ -32,14 +32,14 @@
 
   block:
     - name: log into private registry
-      command: 'docker login {{ hostvars[groups[deploy_environment + "_build_server"][0]].ansible_host }}:{{ docker_registry.port }} --username {{ docker_registry.user }} --password {{ docker_registry.password }}'
+      command: 'docker login {{ docker_registry.host }}:{{ docker_registry.port }} --username {{ docker_registry.user }} --password {{ docker_registry.password }}'
     - name: pull docker image from private registry
-      command: 'docker pull {{ hostvars[groups[deploy_environment + "_build_server"][0]].ansible_host }}:{{ docker_registry.port }}/{{ project | replace(" ", "-") }}-{{ item.name }}:{{ deploy_environment }}'
+      command: 'docker pull {{ docker_registry.host }}:{{ docker_registry.port }}/{{ project | replace(" ", "-") }}-{{ item.name }}:{{ deploy_environment }}'
       loop: '{{ code }}'
 
   always:
     - name: log out private registry
-      command: 'docker logout {{ hostvars[groups[deploy_environment + "_build_server"][0]].ansible_host }}:{{ docker_registry.port }}'
+      command: 'docker logout {{ docker_registry.host }}:{{ docker_registry.port }}'
 
 - name: create directories storing related files
   file:
@@ -61,9 +61,9 @@
   when: item.stdout
 
 - name: start app docker container
-  command: 'docker run --name={{ project | replace(" ", "-") }}-{{ item.name }}-{{ deploy_environment }} -d -v {{ item.path }}:{{ item.path }} -p {{ docker.host_port }}:{{ docker.container_port }} --rm {{ hostvars[groups[deploy_environment + "_build_server"][0]].ansible_host }}:{{ docker_registry.port }}/{{ project | replace(" ", "-") }}-{{ item.name }}:{{ deploy_environment }}'
+  command: 'docker run --name={{ project | replace(" ", "-") }}-{{ item.name }}-{{ deploy_environment }} -d -v {{ item.path }}:{{ item.path }} -p {{ docker.host_port }}:{{ docker.container_port }} --rm {{ docker_registry.host }}:{{ docker_registry.port }}/{{ project | replace(" ", "-") }}-{{ item.name }}:{{ deploy_environment }}'
   loop: '{{ code | selectattr("name","defined") | selectattr("name","equalto","app") | list }}'
 
 - name: start housekeeping docker container
-  command: 'docker run --name={{ project | replace(" ", "-") }}-{{ item.name }}-{{ deploy_environment }} -d -v {{ item.path }}:{{ item.path }} -v {{ item.path }}/housekeeping/cron:/var/log/cron --rm {{ hostvars[groups[deploy_environment + "_build_server"][0]].ansible_host }}:{{ docker_registry.port }}/{{ project | replace(" ", "-") }}-{{ item.name }}:{{ deploy_environment }}'
+  command: 'docker run --name={{ project | replace(" ", "-") }}-{{ item.name }}-{{ deploy_environment }} -d -v {{ item.path }}:{{ item.path }} -v {{ item.path }}/housekeeping/cron:/var/log/cron --rm {{ docker_registry.host }}:{{ docker_registry.port }}/{{ project | replace(" ", "-") }}-{{ item.name }}:{{ deploy_environment }}'
   loop: '{{ code | selectattr("name","defined") | selectattr("name","equalto","housekeeping") | list }}'

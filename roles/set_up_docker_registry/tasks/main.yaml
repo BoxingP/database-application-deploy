@@ -117,16 +117,16 @@
     - name: generate registry credential
       template:
         src: registry_credential.j2
-        dest: '/tmp/docker_registry_credential.yaml'
+        dest: '/tmp/{{ registry_host }}_docker_registry_credential.yaml'
         force: yes
     - name: store file local
       fetch:
-        src: '/tmp/docker_registry_credential.yaml'
+        src: '/tmp/{{ registry_host }}_docker_registry_credential.yaml'
         dest: '/tmp/'
         flat: yes
   always:
     - name: remove file remote
       file:
-        path: '/tmp/docker_registry_credential.yaml'
+        path: '/tmp/{{ registry_host }}_docker_registry_credential.yaml'
         state: absent
       notify: docker config changed
