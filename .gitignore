@@ -1,5 +1,4 @@
 .idea
 .vault_pass
-**/vault
 venv
 __pycache__/
