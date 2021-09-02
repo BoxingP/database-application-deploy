@@ -73,20 +73,6 @@
         - name: initialize postgresql database
           import_tasks: tasks/initialize_postgresql_database.yaml
       when: ( database_exist.failed is defined and database_exist.failed ) or not credential_exist.stat.exists
-    - name: import exist postgresql credential
-      block:
-        - name: import postgresql credential
-          include_vars:
-            file: '/tmp/{{ hostvars[inventory_hostname].ansible_host }}_postgresql_database_config.yaml'
-            name: exist
-          delegate_to: localhost
-        - name: set the postgres listening port
-          set_fact:
-            db_host: '{{ exist.postgresql.host }}'
-        - name: set the postgres listening port
-          set_fact:
-            db_password: '{{ exist.postgresql.password }}'
-      when: credential_exist.stat.exists
 
 - name: build project codes
   hosts: '{{ deploy_environment }}_build_server'
@@ -96,6 +82,13 @@
   vars_files:
     - 'vars/{{ project | replace(" ", "_") }}_{{ deploy_environment }}_config.yaml'
   tasks:
+    - name: import postgresql credential
+      include_vars:
+        file: '/tmp/{{ hostvars[groups[deploy_environment + "_db_servers"][0]].ansible_host | default("") }}_postgresql_database_config.yaml'
+        name: postgresql_credential
+    - name: set the postgres password
+      set_fact:
+        postgresql_password: '{{ postgresql_credential.postgresql.password }}'
     - name: init server environment
       include_role:
         name: init_server_environment
