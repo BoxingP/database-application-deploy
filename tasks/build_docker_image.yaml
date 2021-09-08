@@ -44,20 +44,6 @@
 
   when: component is defined and component.name == 'housekeeping'
 
-- name: generate dockerfile
-  block:
-    - name: get template from code repo
-      fetch:
-        src: '{{ component.location }}/Dockerfile.j2'
-        dest: /tmp/
-        flat: yes
-    - name: generate dockerfile from template
-      template:
-        src: /tmp/Dockerfile.j2
-        dest: '{{ component.location }}/Dockerfile'
-        mode: 0644
-        force: yes
-
 - name: prepare for building app image
   block:
 
@@ -101,7 +87,38 @@
       retries: 25
       delay: 60
 
+    - name: get pom xml info
+      community.general.xml:
+        path: /tmp/b2b_marketplace_app/pom.xml
+        xpath: '/x:project/x:{{ item }}'
+        namespaces:
+          x: 'http://maven.apache.org/POM/4.0.0'
+        content: text
+      register: pom_info
+      loop:
+        - artifactId
+        - version
+        - packaging
+
+    - name: get jar file name
+      set_fact:
+        jar_file: '{{ lookup("dict", pom_info.results.0.matches.0).value }}-{{ lookup("dict", pom_info.results.1.matches.0).value }}.{{ lookup("dict", pom_info.results.2.matches.0).value }}'
+
   when: component is defined and component.name == 'app'
+
+- name: generate dockerfile
+  block:
+    - name: get template from code repo
+      fetch:
+        src: '{{ component.location }}/Dockerfile.j2'
+        dest: /tmp/
+        flat: yes
+    - name: generate dockerfile from template
+      template:
+        src: /tmp/Dockerfile.j2
+        dest: '{{ component.location }}/Dockerfile'
+        mode: 0644
+        force: yes
 
 - name: build docker image
 

@@ -21,9 +21,9 @@ where the optional values of the environment variable are `dev` and `test`
    RUN apk add --no-cache ttf-dejavu tzdata
    ARG USER_HOME_DIR="/root"
    WORKDIR {{ docker.working_directory }}
-   COPY ./target/{{ component.jar_file }} {{ docker.working_directory }}/
+   COPY ./target/{{ jar_file }} {{ docker.working_directory }}/
    ENV TZ="Asia/Shanghai"
-   CMD java -jar {{ component.jar_file }} --spring.profiles.active={{ deploy_environment }} --aws.ak="{{ aws.access_key | jasypt_encrypt(jasypt.password) }}" --aws.sk="{{ aws.secret_access_key | jasypt_encrypt(jasypt.password) }}"
+   CMD java -jar {{ jar_file }} --spring.profiles.active={{ deploy_environment }} --aws.ak="{{ aws.access_key | jasypt_encrypt('%s'|format(jasypt.password)) }}" --aws.sk="{{ aws.secret_access_key | jasypt_encrypt('%s'|format(jasypt.password)) }}"
    ```
 
 * housekeeping

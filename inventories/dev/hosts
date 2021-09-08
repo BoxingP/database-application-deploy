@@ -1,6 +1,6 @@
-centos ansible_host=192.168.56.106 ansible_port=22 ansible_user=boxing ansible_password='{{ login_password }}' ansible_become_password='{{ become_password }}'
-ubuntu ansible_host=192.168.56.107 ansible_port=22 ansible_user=boxing ansible_password='{{ login_password }}' ansible_become_password='{{ become_password }}'
-build ansible_host=192.168.56.108 ansible_port=22 ansible_user=boxing ansible_password='{{ login_password }}' ansible_become_password='{{ become_password }}'
+centos ansible_host='{{ ip_address }}' ansible_port=22 ansible_user='{{ server_user }}' ansible_password='{{ login_password }}' ansible_become_password='{{ become_password }}'
+ubuntu ansible_host='{{ ip_address }}' ansible_port=22 ansible_user='{{ server_user }}' ansible_password='{{ login_password }}' ansible_become_password='{{ become_password }}'
+build ansible_host='{{ ip_address }}' ansible_port=22 ansible_user='{{ server_user }}' ansible_password='{{ login_password }}' ansible_become_password='{{ become_password }}'
 
 [dev_app_servers]
 ubuntu

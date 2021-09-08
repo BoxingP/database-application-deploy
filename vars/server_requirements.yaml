@@ -4,3 +4,4 @@ requirements:
   - six==1.16.0
   - pyOpenSSL==20.0.1
   - selinux==0.2.1
+  - lxml >= 2.3.0
