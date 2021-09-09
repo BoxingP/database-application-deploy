@@ -1,1 +1,0 @@
-localhost ansible_host='{{ ip_address }}' ansible_connection=local ansible_user='{{ server_user }}' ansible_password='{{ login_password }}' ansible_become_password='{{ become_password }}' ansible_python_interpreter=/usr/bin/python3

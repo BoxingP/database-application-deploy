@@ -1,4 +1,0 @@
-ip_address: '{{ vault_ip_address }}'
-server_user: '{{ vault_server_user }}'
-login_password: '{{ vault_login_password }}'
-become_password: '{{ vault_become_password }}'
