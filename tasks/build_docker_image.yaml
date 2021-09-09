@@ -2,18 +2,21 @@
 - name: prepare for building housekeeping image
   block:
 
-    - name: get cron files
+    - name: get template files
       fetch:
-        src: '{{ component.location }}/cron/{{ item }}'
+        src: '{{ component.location }}/{{ item }}'
         dest: '/tmp/'
         flat: yes
       loop:
-        - cron_config.yaml
-        - template.crontab.j2
+        - b2b/template.cfg.j2
+        - cron/template.crontab.j2
 
-    - name: include cron config
-      include_vars:
-        file: '/tmp/cron_config.yaml'
+    - name: generate cfg file
+      template:
+        src: '/tmp/template.cfg.j2'
+        dest: '{{ component.location }}/b2b/cfg_{{ deploy_environment }}.cfg'
+        mode: 0644
+        force: yes
 
     - name: generate crontab file
       lineinfile:
@@ -23,7 +26,7 @@
         state: present
         insertafter: EOF
         create: True
-      loop: '{{ schedule }}'
+      loop: '{{ cron.housekeeping }}'
 
     - name: make sure the empty last line exists in crontab file
       lineinfile:
