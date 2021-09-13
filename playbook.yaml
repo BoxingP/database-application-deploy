@@ -70,8 +70,6 @@
         - name: build postgresql
           include_role:
             name: build_postgresql
-        - name: initialize postgresql database
-          import_tasks: tasks/initialize_postgresql_database.yaml
       when: ( database_exist.failed is defined and database_exist.failed ) or not credential_exist.stat.exists
 
 - name: build project codes
@@ -83,12 +81,7 @@
     - 'vars/{{ project | replace(" ", "_") }}_{{ deploy_environment }}_config.yaml'
   tasks:
     - name: import postgresql credential
-      include_vars:
-        file: '/tmp/{{ hostvars[groups[deploy_environment + "_db_servers"][0]].ansible_host | default("") }}_postgresql_database_config.yaml'
-        name: postgresql_credential
-    - name: set the postgres password
-      set_fact:
-        postgresql_password: '{{ postgresql_credential.postgresql.password }}'
+      include_tasks: tasks/import_postgresql_credential.yaml
     - name: init server environment
       include_role:
         name: init_server_environment

@@ -2,5 +2,8 @@
 postgresql:
   host: {{ db_host }}
   port: {{ db_port }}
-  user: {{ db_user }}
-  password: {{ db_password }}
+  user:
+{% for user in updated_db_user %}
+    - name: {{ user.name }}
+      password: {{ user.password }}
+{% endfor %}

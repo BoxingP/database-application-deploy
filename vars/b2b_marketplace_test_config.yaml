@@ -80,8 +80,19 @@ postgresql:
     61646266333035643331663434376463313265636234346537626361333430373132353836366234
     3535313130316262650a343731666365353965646133633739316531376233643239313838643730
     6162
-  user: '{{ project | replace(" ", "_") }}_{{ deploy_environment }}'
-  password: '{{ postgresql_password | default("") }}'
+  user:
+    - name: '{{ project | replace(" ", "_") }}_app_{{ deploy_environment }}'
+      password: '{{ postgresql_app_password | default("") }}'
+      role: NOSUPERUSER,NOCREATEDB,LOGIN
+      default_privs: ALL
+      table: SELECT,INSERT,UPDATE,DELETE,TRIGGER
+      sequence: SELECT,UPDATE,USAGE
+    - name: '{{ project | replace(" ", "_") }}_housekeeping_{{ deploy_environment }}'
+      password: '{{ postgresql_housekeeping_password | default("") }}'
+      role: NOSUPERUSER,CREATEDB,LOGIN
+      default_privs: ALL
+      table: ALL
+      sequence: ALL
   database:
     - name: b2b_config
       init_file: config_db_ddl.sql
@@ -243,18 +254,3 @@ path:
   excel: /var/b2bm/excel/
   tmp: /var/b2bm/tmp/
   housekeeping_log: /var/b2bm/housekeeping/logs/housekeeping.log
-backup:
-  user: !vault |
-    $ANSIBLE_VAULT;1.2;AES256;vault_passcode
-    64636464373566333766323931653134386135623635393334356330663037313837303865323636
-    6566623438333737343934666230396438623033623634660a663433326163346437646361623736
-    65626661346566616437623566653235663033303439383935646535393835323238346231626130
-    3238383065343964630a353635646233363066353434346332393465346239363539356331653565
-    3430
-  password: !vault |
-    $ANSIBLE_VAULT;1.2;AES256;vault_passcode
-    66643531336266386361373962383933663034383064383232623734636232653830393061323330
-    3261316333393631663536316363653164343562626130620a346333663066346232366332373362
-    66656664613135386261663762373664333831653032396235646366393664623737336363383032
-    6632363061623963350a636461653065643763343661616334653438313432393531343238373737
-    6539

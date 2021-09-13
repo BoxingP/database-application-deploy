@@ -1,0 +1,29 @@
+---
+- name: get postgresql host
+  set_fact:
+    db_host: '{{ hostvars[inventory_hostname].ansible_host }}'
+  when: hostvars[inventory_hostname].ansible_host is defined
+
+- name: get postgresql host
+  set_fact:
+    db_host: 127.0.0.1
+  when: hostvars[inventory_hostname].ansible_connection is defined and
+        hostvars[inventory_hostname].ansible_connection == 'local'
+
+- name: save postgresql configs to file
+  block:
+    - name: generate postgresql config
+      template:
+        src: database_config.j2
+        dest: '/tmp/{{ db_host }}_postgresql_database_config.yaml'
+        force: yes
+    - name: store file local
+      fetch:
+        src: '/tmp/{{ db_host }}_postgresql_database_config.yaml'
+        dest: '/tmp/'
+        flat: yes
+  always:
+    - name: remove file remote
+      file:
+        path: '/tmp/{{ db_host }}_postgresql_database_config.yaml'
+        state: absent

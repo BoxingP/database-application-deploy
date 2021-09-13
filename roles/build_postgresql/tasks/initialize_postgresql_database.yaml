@@ -1,0 +1,26 @@
+---
+- name: upload database initialize scripts to db server
+  ansible.posix.synchronize:
+    src: '{{ ( code | selectattr("name","defined") | selectattr("name","equalto","app") | first ).location }}/db/'
+    dest: '{{ postgresql.path }}/'
+    mode: push
+    delete: yes
+    recursive: yes
+  delegate_to: '{{groups[deploy_environment + "_build_server"][0]}}'
+
+- name: remove exist databases
+  community.postgresql.postgresql_db:
+    name: '{{ item.name }}'
+    port: '{{ postgresql.port }}'
+    state: absent
+  become: yes
+  become_user: postgres
+  loop:
+    '{{ postgresql.database }}'
+
+- name: initialize databases
+  command: 'psql --file={{ postgresql.path }}/{{ item.init_file }} --port={{ postgresql.port }}'
+  become: yes
+  become_user: postgres
+  loop:
+    '{{ postgresql.database }}'

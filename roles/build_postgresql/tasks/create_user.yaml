@@ -1,0 +1,69 @@
+---
+- name: generate a random password for user
+  set_fact:
+    user_password: "{{ lookup('password', '/dev/null length=30 chars=ascii_letters,digits') }}"
+
+- name: create user
+  community.postgresql.postgresql_user:
+    port: '{{ db_port }}'
+    name: '{{ account.name }}'
+    password: '{{ user_password }}'
+    state: present
+  become: yes
+  become_user: postgres
+
+- name: ensure user has the correct roles
+  community.postgresql.postgresql_user:
+    port: '{{ db_port }}'
+    name: '{{ account.name }}'
+    role_attr_flags: '{{ account.role }}'
+    state: present
+  become: yes
+  become_user: postgres
+
+- name: ensure user has the access, step 1
+  community.postgresql.postgresql_privs:
+    db: '{{ item.name }}'
+    port: '{{ db_port }}'
+    role: '{{ account.name }}'
+    objs: ALL_DEFAULT
+    type: default_privs
+    privs: '{{ account.default_privs }}'
+    grant_option: yes
+  become: yes
+  become_user: postgres
+  loop:
+    '{{ postgresql.database }}'
+
+- name: ensure user has the access, step 2
+  community.postgresql.postgresql_privs:
+    db: '{{ item.name }}'
+    port: '{{ db_port }}'
+    role: '{{ account.name }}'
+    objs: ALL_IN_SCHEMA
+    type: table
+    privs: '{{ account.table }}'
+  become: yes
+  become_user: postgres
+  loop:
+    '{{ postgresql.database }}'
+
+- name: ensure user has the access, step 3
+  community.postgresql.postgresql_privs:
+    db: '{{ item.name }}'
+    port: '{{ db_port }}'
+    role: '{{ account.name }}'
+    objs: ALL_IN_SCHEMA
+    type: sequence
+    privs: '{{ account.sequence }}'
+  become: yes
+  become_user: postgres
+  loop:
+    '{{ postgresql.database }}'
+
+- name: update user info
+  set_fact:
+    updated_db_user: "{{ updated_db_user|default([]) + [updated_account] }}"
+  vars:
+    updated_account: "{{ account | combine(item, recursive=true) }}"
+    item: "{ 'password': '{{ user_password }}' }"
