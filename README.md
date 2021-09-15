@@ -10,6 +10,14 @@
 
 where the optional values of the environment variable are `dev` and `test`
 
+There is another startup command, which adds the credential info for using ansible synchronize.
+
+**NOTE**: This command is with a leading space character, and will not be stored in the history, which is usually set by the default value HISTCONTROL=ignoreboth.
+
+   ```shell
+   $  ansible-playbook playbook.yaml --extra-vars "deploy_environment=prod synchronize_user={{ user_when_using_ansible_synchronize }} synchronize_password={{ password_of_user_when_using_ansible_synchronize }}"
+   ```
+
 **Dockerfile in the code repo for reference**
 
 * marketplace

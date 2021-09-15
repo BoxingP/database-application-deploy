@@ -7,6 +7,9 @@
     delete: yes
     recursive: yes
   delegate_to: '{{groups[deploy_environment + "_build_server"][0]}}'
+  vars:
+    - ansible_user: '{{ synchronize_user | default(hostvars[inventory_hostname].ansible_user) }}'
+    - ansible_password: '{{ synchronize_password | default(hostvars[inventory_hostname].ansible_password) }}'
 
 - name: remove exist databases
   community.postgresql.postgresql_db:

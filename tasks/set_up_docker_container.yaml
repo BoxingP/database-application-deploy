@@ -11,6 +11,9 @@
     delete: yes
     recursive: yes
   delegate_to: '{{ groups[deploy_environment + "_build_server"][0] }}'
+  vars:
+    - ansible_user: '{{ synchronize_user | default(hostvars[inventory_hostname].ansible_user) }}'
+    - ansible_password: '{{ synchronize_password | default(hostvars[inventory_hostname].ansible_password) }}'
 
 - name: ensure storing certificate directory exists
   file:
@@ -65,5 +68,5 @@
   loop: '{{ code | selectattr("name","defined") | selectattr("name","equalto","app") | list }}'
 
 - name: start housekeeping docker container
-  command: 'docker run --name={{ project | replace(" ", "-") }}-{{ item.name }}-{{ deploy_environment }} -d -v {{ item.path }}:{{ item.path }} -v {{ item.path }}/housekeeping/cron:/var/log/cron --rm {{ docker_registry.host }}:{{ docker_registry.port }}/{{ project | replace(" ", "-") }}-{{ item.name }}:{{ deploy_environment }}'
+  command: 'docker run --name={{ project | replace(" ", "-") }}-{{ item.name }}-{{ deploy_environment }} -d -v {{ item.path }}:{{ item.path }} -v {{ item.path }}/housekeeping/cron:/var/log/cron -e CONTAINER_HOSTNAME={{ hostvars[inventory_hostname].ansible_host }} --rm {{ docker_registry.host }}:{{ docker_registry.port }}/{{ project | replace(" ", "-") }}-{{ item.name }}:{{ deploy_environment }}'
   loop: '{{ code | selectattr("name","defined") | selectattr("name","equalto","housekeeping") | list }}'
