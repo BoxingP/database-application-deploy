@@ -121,4 +121,7 @@
       include_role:
         name: install_docker
     - name: set up app container
-      import_tasks: tasks/set_up_docker_container.yaml
+      include_tasks: tasks/set_up_docker_container.yaml
+      loop: '{{ code }}'
+      loop_control:
+        loop_var: component

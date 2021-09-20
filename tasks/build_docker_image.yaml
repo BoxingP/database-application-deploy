@@ -22,11 +22,11 @@
       lineinfile:
         path: '{{ component.location }}/cron/crontab'
         line: '{{ lookup("template", "/tmp/template.crontab.j2") }}'
-        regexp: '^.+{{ item.script }}.+$'
+        regexp: '^.+{{ item.service }}.+$'
         state: present
         insertafter: EOF
         create: True
-      loop: '{{ cron.housekeeping }}'
+      loop: '{{ component.schedule }}'
 
     - name: make sure the empty last line exists in crontab file
       lineinfile:

@@ -14,12 +14,32 @@ code:
     location: /tmp/b2b_marketplace_app
     path: /var/b2bm
     folder:
-      - logs
-      - csv
-      - excel
-      - init
-      - action
-      - tmp
+      log: logs
+      csv: csv
+      report: excel
+      init: init
+      action: action
+      temp: tmp
+    druid:
+      user: '{{ project | replace(" ", "_") }}_{{ deploy_environment }}'
+      password: !vault |
+        $ANSIBLE_VAULT;1.2;AES256;vault_passcode
+        32343363323764313333623663323233376130376137613431303539613234303363396237373031
+        3139346462653139306235623235633831653531323766630a303531316335323861376536396366
+        35626337306231353534306630336535663130656535663432643464323162653662393039356334
+        3035323937363762350a313039396130343465396139616562343166323830313438623662316535
+        65613939383962663562383364313034626135646232383339613865336332626236
+    log:
+      level: INFO
+    schedule:
+      - service: sync
+        cron: '0 0 07,14,21 * * ? *'
+      - service: threshold
+        cron: '0 0 2,12,19 * * ? *'
+      - service: product
+        cron: '0 0 8 ? * 2 *'
+      - service: sequence
+        cron: '{"07":"1","14":"2","21":"3"}'
   - name: housekeeping
     repo: !vault |
       $ANSIBLE_VAULT;1.2;AES256;vault_passcode
@@ -35,8 +55,23 @@ code:
     location: /tmp/b2b_marketplace_housekeeping
     path: /var/b2bm
     folder:
-      - housekeeping/logs
-      - housekeeping/cron
+      log: housekeeping/logs
+      cron: housekeeping/cron
+    log:
+      file_name: housekeeping.log
+    schedule:
+      - service: b2b-ack-cas-data.py
+        cron: '0 3,13,20 * * *'
+      - service: b2b-expiration-data.py
+        cron: '0 1 * * *'
+      - service: b2b-discontinued-sku.py
+        cron: '0 1 * * *'
+      - service: b2b-backup-log.py
+        cron: '5 0 * * *'
+      - service: b2b-db-backup.py
+        cron: '0 3 * * *'
+      - service: b2b-content-check.py
+        cron: '30 6,13,20 * * *'
 docker:
   host_port: !vault |
     $ANSIBLE_VAULT;1.2;AES256;vault_passcode
@@ -53,24 +88,6 @@ docker:
     6264393136653332620a383438346561623566663833383437613436326665393135623564303062
     6339
   working_directory: /usr/src/b2bm
-cron:
-  sync: '0 0 07,14,21 * * ? *'
-  threshold: '0 0 2,12,19 * * ? *'
-  product: '0 0 8 ? * 2 *'
-  sequence: '{"07":"1","14":"2","21":"3"}'
-  housekeeping:
-    - script: b2b-ack-cas-data.py
-      cron: 0 3,13,20 * * *
-    - script: b2b-expiration-data.py
-      cron: 0 1 * * *
-    - script: b2b-discontinued-sku.py
-      cron: 0 1 * * *
-    - script: b2b-backup-log.py
-      cron: 5 0 * * *
-    - script: b2b-db-backup.py
-      cron: 0 3 * * *
-    - script: b2b-content-check.py
-      cron: 30 6,13,20 * * *
 postgresql:
   host: '{{ hostvars[groups[deploy_environment + "_db_servers"][0]].ansible_host | default("") }}'
   port: !vault |
@@ -137,15 +154,6 @@ e1:
     31633339623038313733363361623538303730646334633733393239636364366433666535336261
     3166373163383163360a613835623363623762663031636362386634356266666133333336376561
     3165
-druid:
-  user: '{{ project | replace(" ", "_") }}_{{ deploy_environment }}'
-  password: !vault |
-    $ANSIBLE_VAULT;1.2;AES256;vault_passcode
-    32343363323764313333623663323233376130376137613431303539613234303363396237373031
-    3139346462653139306235623235633831653531323766630a303531316335323861376536396366
-    35626337306231353534306630336535663130656535663432643464323162653662393039356334
-    3035323937363762350a313039396130343465396139616562343166323830313438623662316535
-    65613939383962663562383364313034626135646232383339613865336332626236
 aws:
   region: !vault |
     $ANSIBLE_VAULT;1.2;AES256;vault_passcode
@@ -189,8 +197,6 @@ zip:
     30323933383130396637376565613232653164336266623665613935656336623031323836653833
     36363162383064343339653662373139616330643432373436643138336230313336616135336336
     32623338383363653738
-log:
-  level: INFO
 casmart:
   url: !vault |
     $ANSIBLE_VAULT;1.2;AES256;vault_passcode
@@ -251,9 +257,3 @@ email:
     36616334346438386364633231383362313965656633656236333135623434326633303034643237
     37666539356636383961373839646230323839663265373838313732623231323765666433666536
     363566313237323438616166393935373030
-path:
-  csv: /var/b2bm/csv/
-  log: /var/b2bm/logs/
-  excel: /var/b2bm/excel/
-  tmp: /var/b2bm/tmp/
-  housekeeping_log: /var/b2bm/housekeeping/logs/housekeeping.log
