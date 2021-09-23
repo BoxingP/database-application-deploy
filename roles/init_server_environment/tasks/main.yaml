@@ -5,3 +5,13 @@
 - name: init server environment for rhel
   import_tasks: redhat.yaml
   when: ansible_facts['os_family']|lower == 'redhat'
+
+- name: update motd banner messages
+  copy:
+    src: motd
+    dest: /etc/
+    owner: root
+    group: root
+    mode: '0644'
+    backup: yes
+  become: yes
