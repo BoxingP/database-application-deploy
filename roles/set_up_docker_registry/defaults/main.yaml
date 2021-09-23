@@ -1,5 +1,6 @@
 ---
 registry_container: private-registry
+registry_port: 8443
 registry_path: /etc/docker/registry
 registry_directory:
   - auth

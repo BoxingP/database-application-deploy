@@ -128,7 +128,7 @@
   block:
     - name: log into private registry
       community.docker.docker_login:
-        registry_url: 127.0.0.1:443
+        registry_url: '127.0.0.1:{{ registry_port }}'
         username: '{{ registry_user }}'
         password: '{{ registry_password }}'
         reauthorize: yes
@@ -142,11 +142,11 @@
         state: present
         force_source: yes
         force_tag: yes
-        repository: '127.0.0.1:443/{{ project | replace(" ", "-") }}-{{ component.name }}'
+        repository: '127.0.0.1:{{ registry_port }}/{{ project | replace(" ", "-") }}-{{ component.name }}'
         push: yes
 
   always:
     - name: log out private registry
       community.docker.docker_login:
-        registry_url: 127.0.0.1:443
+        registry_url: '127.0.0.1:{{ registry_port }}'
         state: absent

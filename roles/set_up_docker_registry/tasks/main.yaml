@@ -91,7 +91,7 @@
       - '{{ registry_path }}/auth:/auth'
       - '{{ registry_path }}/certs:/certs'
     published_ports:
-      - "443:443"
+      - '{{ registry_port }}:443'
     env:
       REGISTRY_AUTH: "htpasswd"
       REGISTRY_AUTH_HTPASSWD_REALM: "Registry Realm"
@@ -111,6 +111,20 @@
   shell: /usr/sbin/setsebool -P httpd_can_network_connect 1
   when: selinux_status.rc == 0 and selinux_status.stdout|lower == 'enforcing'
   become: yes
+
+- name: set up firewall
+  include_role:
+    name: set_up_ufw
+  vars:
+    enable_port: '{{ registry_port }}'
+  when: ansible_facts['os_family']|lower == 'debian'
+
+- name: set up firewall
+  include_role:
+    name: set_up_firewall
+  vars:
+    enable_port: '{{ registry_port }}'
+  when: ansible_facts['os_family']|lower == 'redhat'
 
 - name: save registry credential to file
   block:

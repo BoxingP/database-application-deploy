@@ -17,7 +17,7 @@
 
 - name: ensure storing certificate directory exists
   file:
-    path: '/etc/docker/certs.d/{{ docker_registry.host }}:443/'
+    path: '/etc/docker/certs.d/{{ docker_registry.host }}:{{ docker_registry.port }}/'
     state: directory
     mode: 0755
   become: yes

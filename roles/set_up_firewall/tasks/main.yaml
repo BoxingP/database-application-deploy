@@ -5,6 +5,9 @@
     state: enabled
     zone: public
   become: yes
+  when: enable_service is defined
+  vars:
+    ansible_python_interpreter: '/usr/bin/python2'
 
 - name: permit traffic in public zone for specific port
   ansible.posix.firewalld:
@@ -13,6 +16,9 @@
     state: enabled
     zone: public
   become: yes
+  when: enable_port is defined
+  vars:
+    ansible_python_interpreter: '/usr/bin/python2'
 
 - name: reload firewalld
   systemd:
