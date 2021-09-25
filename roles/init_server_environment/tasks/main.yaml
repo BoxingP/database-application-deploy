@@ -6,12 +6,20 @@
   import_tasks: redhat.yaml
   when: ansible_facts['os_family']|lower == 'redhat'
 
+- name: check motd banner messages exists
+  stat:
+    path: /tmp/motd
+  register: motd_exist
+  delegate_to: localhost
+  when: use_motd_banner
+
 - name: update motd banner messages
   copy:
-    src: motd
+    src: /tmp/motd
     dest: /etc/
     owner: root
     group: root
     mode: '0644'
     backup: yes
   become: yes
+  when: motd_exist is defined and motd_exist.stat is defined and motd_exist.stat.exists

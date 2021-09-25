@@ -1,2 +1,5 @@
 ---
 project: b2b marketplace
+owner_team: example team
+contact_email: creator@example.com
+use_motd_banner: true

@@ -25,7 +25,7 @@
       environment: '{{ env_vars }}'
       loop: '{{ code }}'
 
-- name: fetch project codes
+- name: do preparation
   hosts: '{{ deploy_environment }}_build_server'
   gather_facts: no
   vars:
@@ -33,6 +33,10 @@
   vars_files:
     - 'vars/{{ project | replace(" ", "_") }}_{{ deploy_environment }}_config.yaml'
   tasks:
+    - name: generate motd banner
+      include_role:
+        name: create_motd_banner
+      when: use_motd_banner
     - name: init server environment
       include_role:
         name: init_server_environment

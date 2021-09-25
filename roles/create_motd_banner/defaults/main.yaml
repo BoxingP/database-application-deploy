@@ -1,0 +1,3 @@
+---
+motd_text: '{{ project.split()[0] | upper }}-{{ project.split()[1] | title }}'
+motd_figlet_font: 'standard'
