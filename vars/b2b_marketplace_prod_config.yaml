@@ -178,6 +178,7 @@ aws:
     39663561353465326435613961626233336439626532303635343636623336363431643536386439
     3932383736396536383563326365616333653531633363666261
   tf_s3: '{{ project | replace(" ", "-") }}-data-to-casmart-{{ deploy_environment }}-s3'
+  image_s3: 'b2b-local-image-prod'
 jasypt:
   password: !vault |
     $ANSIBLE_VAULT;1.2;AES256;vault_passcode
