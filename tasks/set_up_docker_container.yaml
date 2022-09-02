@@ -62,9 +62,9 @@
   when: found_containers.stdout
 
 - name: start app docker container
-  command: 'docker run --name={{ project | replace(" ", "-") }}-{{ component.name }}-{{ deploy_environment }} -d -v {{ component.path }}:{{ component.path }} -p {{ docker.host_port }}:{{ docker.container_port }} --rm {{ docker_registry.host }}:{{ docker_registry.port }}/{{ project | replace(" ", "-") }}-{{ component.name }}:{{ deploy_environment }}'
+  command: 'docker run --name={{ project | replace(" ", "-") }}-{{ component.name }}-{{ deploy_environment }} -d -v {{ component.path }}:{{ component.path }} -p {{ docker.host_port }}:{{ docker.container_port }} --restart=always {{ docker_registry.host }}:{{ docker_registry.port }}/{{ project | replace(" ", "-") }}-{{ component.name }}:{{ deploy_environment }}'
   when: component.name == 'app'
 
 - name: start housekeeping docker container
-  command: 'docker run --name={{ project | replace(" ", "-") }}-{{ component.name }}-{{ deploy_environment }} -d -v {{ component.path }}:{{ component.path }} -v {{ component.path }}/{{ component.folder.cron }}:/var/log/cron -e CONTAINER_HOSTNAME={{ hostvars[inventory_hostname].ansible_host }} --rm {{ docker_registry.host }}:{{ docker_registry.port }}/{{ project | replace(" ", "-") }}-{{ component.name }}:{{ deploy_environment }}'
+  command: 'docker run --name={{ project | replace(" ", "-") }}-{{ component.name }}-{{ deploy_environment }} -d -v {{ component.path }}:{{ component.path }} -v {{ component.path }}/{{ component.folder.cron }}:/var/log/cron -e CONTAINER_HOSTNAME={{ hostvars[inventory_hostname].ansible_host }} --restart=always {{ docker_registry.host }}:{{ docker_registry.port }}/{{ project | replace(" ", "-") }}-{{ component.name }}:{{ deploy_environment }}'
   when: component.name == 'housekeeping'
